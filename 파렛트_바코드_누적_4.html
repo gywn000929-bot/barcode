@@ -93,7 +93,10 @@ video{width:100%;border-radius:12px;background:#000}
       <button class="btn sec sm" id="photoBtn">🖼️ 사진 촬영 인식</button>
       <input id="photoIn" type="file" accept="image/*" capture="environment" style="display:none">
       <button class="btn ghost sm" id="addLooseBtn">＋ 낱개</button>
-      <button class="btn ghost sm" id="dingBtn">🔊</button>
+      <button class="btn ghost sm" id="dingBtn" aria-label="소리 켜기/끄기">🔊</button>
+      <button class="btn ghost sm" id="backupBtn" aria-label="데이터 백업">💾 백업</button>
+      <button class="btn ghost sm" id="restoreBtn" aria-label="백업 복원">📂 복원</button>
+      <input id="restoreIn" type="file" accept=".json,application/json" style="display:none">
     </div>
     <div id="camWrap" class="scanbox" style="display:none;margin-top:10px">
       <div id="reader" style="width:100%;border-radius:12px;overflow:hidden"></div>
@@ -117,6 +120,7 @@ video{width:100%;border-radius:12px;background:#000}
       <b>품목별 누적</b>
       <span class="muted small" id="partCount"></span>
     </div>
+    <input id="partSearch" type="text" placeholder="🔎 품명 검색…" autocomplete="off" style="margin-bottom:8px">
     <div style="overflow:auto">
       <table id="partTbl"><thead><tr><th>품명</th><th>박스당</th><th>총 수량</th><th>파렛트별 위치 / 수량</th><th></th></tr></thead><tbody></tbody></table>
     </div>
@@ -176,8 +180,16 @@ const M_SUG={}; MASTER.forEach(r=>{ if(r[4]) M_SUG[r[0]]=r[4]; }); // ERP 포장
 let S=load()||{pal:'1', items:{}, learned:{}, feed:[], pending:[]};
 if(!S.pending)S.pending=[];
 if(!S.seen)S.seen={};
-function save(){try{localStorage.setItem('palletAccu',JSON.stringify(S))}catch(e){}}
+function save(){try{localStorage.setItem('palletAccu',JSON.stringify(S))}catch(e){ try{toast('저장 실패 — 저장공간 부족일 수 있어(백업 후 기록 정리 권장)','err',3200);}catch(_){}}}
 function load(){try{return JSON.parse(localStorage.getItem('palletAccu'))}catch(e){return null}}
+// HTML 이스케이프: 스캔값·품명이 표를 깨거나 스크립트로 주입되는 것 방지
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+// seen(중복차단 기록) 무한 증가 방지 — 오래된 것부터 정리
+function pruneSeen(max=8000){ if(!S.seen)return; const ks=Object.keys(S.seen); if(ks.length>max){ for(let i=0;i<ks.length-max;i++) delete S.seen[ks[i]]; } }
+// LOT 없는 코드의 순간 중복(스캐너 연속발사) 차단용 — 의도적 재스캔은 허용
+let lastLooseKey='', lastLooseAt=0;
+// 품목별 표 검색어
+let partFilter='';
 
 // ---- matching ----
 function normalize(t){return String(t).toUpperCase().replace(/[\s]/g,'')}
@@ -260,7 +272,7 @@ function doImport(pal,text){
     if(c.length===1){ addBox(pal,c[0].name,c[0].per||M_PER[c[0].name]||(kp?kp.qty:0)||0); S.learned[codeKey(raw)]=c[0].name; logFeed(pal,c[0].name,+1); if(bid){S.seen[bid]={pal,name:c[0].name}; if(S.feed[0])S.feed[0].bid=bid;} ok++; }
     else { if(bid && S.pending.some(e=>boxId(e.raw)===bid)){ dup++; } else { S.pending.push({pal,raw,key:codeKey(raw),part:(kp?kp.part:raw),qty:(kp?kp.qty:0)}); un++; } }
   });
-  save(); render();
+  pruneSeen(); save(); render();
   toast('가져옴 '+codes.length+'건 · 인식 '+ok+(dup?' / 중복제외 '+dup:'')+(un?' / 미인식 '+un:'')+' · ['+pal+'번] 합계 '+palBoxCount(pal)+'박스', (un||dup)?'warn':null, 3600);
 }
 function connectPending(key){ pendingRaw=key; niRaw=''; const es=S.pending.filter(e=>(e.key||codeKey(e.raw))===key); const cnt=es.length; const part=(es[0]&&es[0].part)||key; const qty=(es.find(e=>e.qty)||{}).qty||''; $('#niTitle').textContent='바코드 연결'; $('#niRaw').textContent='품번: '+part+' (대기 '+cnt+'건)'+(qty?' · 바코드 박스당 '+qty:''); $('#niName').value=''; $('#niPer').value=qty||''; ni.showModal(); setTimeout(()=>$('#niName').focus(),60); }
@@ -269,7 +281,7 @@ function renderPending(){ const box=$('#pendingBox'); if(!box) return; if(!S.pen
   const grp={}; S.pending.forEach(e=>{ const k=(e.key||codeKey(e.raw)); (grp[k]=grp[k]||{cnt:0,part:(e.part||e.raw),qty:e.qty||0}); grp[k].cnt++; if(e.qty)grp[k].qty=e.qty; });
   box.style.display='block';
   box.innerHTML='<div style="font-weight:700;color:var(--warn);margin-bottom:6px">미인식 '+Object.keys(grp).length+'종 — 연결하면 누적됩니다</div>'+
-    Object.keys(grp).map(k=>'<div class="row" style="justify-content:space-between;border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin-bottom:6px"><span class="small" style="word-break:break-all"><b>'+grp[k].part+'</b> <span class="muted">×'+grp[k].cnt+(grp[k].qty?' · 박스당 '+grp[k].qty:'')+'</span></span><button class="btn sec sm" data-key="'+encodeURIComponent(k)+'">연결</button></div>').join('');
+    Object.keys(grp).map(k=>'<div class="row" style="justify-content:space-between;border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin-bottom:6px"><span class="small" style="word-break:break-all"><b>'+esc(grp[k].part)+'</b> <span class="muted">×'+grp[k].cnt+(grp[k].qty?' · 박스당 '+grp[k].qty:'')+'</span></span><button class="btn sec sm" data-key="'+encodeURIComponent(k)+'">연결</button></div>').join('');
   box.querySelectorAll('button[data-key]').forEach(b=>b.onclick=()=>connectPending(decodeURIComponent(b.dataset.key)));
 }
 
@@ -277,13 +289,13 @@ function renderPending(){ const box=$('#pendingBox'); if(!box) return; if(!S.pen
 function key(pal,name){return pal+'\u0001'+name}
 function addBox(pal,name,per,n=1){
   const k=key(pal,name); const it=S.items[k]||{pal,name,per:(per??M_PER[name]??0),boxes:0,loose:0};
-  if(per!=null) it.per=per; it.boxes+=n; S.items[k]=it; save();
+  if(per!=null) it.per=per; it.boxes+=n; S.items[k]=it;
 }
 function addLoose(pal,name,qty){
   const k=key(pal,name); const it=S.items[k]||{pal,name,per:(M_PER[name]??0),boxes:0,loose:0};
-  it.loose+=qty; S.items[k]=it; save();
+  it.loose+=qty; S.items[k]=it;
 }
-function logFeed(pal,name,delta){ S.feed.unshift({t:new Date().toLocaleTimeString('ko-KR',{hour12:false}),pal,name,d:delta}); if(S.feed.length>300)S.feed.pop(); save(); }
+function logFeed(pal,name,delta){ S.feed.unshift({t:new Date().toLocaleTimeString('ko-KR',{hour12:false}),pal,name,d:delta}); if(S.feed.length>300)S.feed.pop(); }
 
 function onScan(raw){
   raw=String(raw||'').trim(); if(!raw) return;
@@ -302,8 +314,13 @@ function commit(name, per, raw){
     toast('⚠️ 이미 스캔한 박스 ['+(sv.pal||'?')+'번 · '+(sv.name||name)+'] — 중복 무시','warn',3000);
     keepFocus(); return;
   }
+  if(!bid && raw){                                                 // LOT 없는 코드: 스캐너 연속발사 등 순간 중복만 차단(의도적 재스캔은 허용)
+    const gk=normalize(raw), nowT=Date.now();
+    if(gk===lastLooseKey && nowT-lastLooseAt<1500){ buzz(); toast('⚠️ 방금 찍은 코드와 동일 — 오작동으로 보고 무시','warn',2200); keepFocus(); return; }
+    lastLooseKey=gk; lastLooseAt=nowT;
+  }
   addBox(S.pal, name, p); logFeed(S.pal, name, +1);
-  if(bid){ S.seen[bid]={pal:S.pal,name}; if(S.feed[0])S.feed[0].bid=bid; }
+  if(bid){ S.seen[bid]={pal:S.pal,name}; pruneSeen(); if(S.feed[0])S.feed[0].bid=bid; }
   if(raw){ S.learned[codeKey(raw)]=name; }
   save();
   toast('＋1박스 · '+name+'  ['+S.pal+'번]'); ding(); flashCam(name); render(); keepFocus();
@@ -322,7 +339,7 @@ function pickDialog(cands, raw){
   $('#pickTitle').textContent='어느 품목? ('+raw+')';
   const b=$('#pickBody'); b.innerHTML='';
   cands.forEach(c=>{const btn=document.createElement('button');btn.className='opt';
-    btn.innerHTML=c.name+' <span class="muted small">· '+(c.per?'박스당 '+fmt(c.per):'박스당 미정')+' · '+(c.fac||'')+'</span>';
+    btn.innerHTML=esc(c.name)+' <span class="muted small">· '+(c.per?'박스당 '+fmt(c.per):'박스당 미정')+' · '+esc(c.fac||'')+'</span>';
     btn.onclick=()=>{pick.close();commit(c.name,c.per,raw)};b.appendChild(btn);});
   pick.showModal();
 }
@@ -344,7 +361,7 @@ $('#niCancel').onclick=()=>ni.close();
 const loose=$('#loose');
 $('#addLooseBtn').onclick=()=>{ $('#loPal').textContent=S.pal+'번'; $('#loName').value=''; $('#loQty').value=''; loose.showModal(); setTimeout(()=>$('#loName').focus(),50); };
 $('#loSave').onclick=()=>{ const n=$('#loName').value.trim(); const q=parseInt($('#loQty').value)||0;
-  if(!n||!q){toast('품명/수량 확인','warn');return;} addLoose(S.pal,n,q); logFeed(S.pal,n,'낱개+'+q); loose.close(); toast('낱개 +'+fmt(q)+' · '+n); render(); };
+  if(!n||!q){toast('품명/수량 확인','warn');return;} addLoose(S.pal,n,q); logFeed(S.pal,n,'낱개+'+q); save(); loose.close(); toast('낱개 +'+fmt(q)+' · '+n); render(); };
 $('#loCancel').onclick=()=>loose.close();
 
 const imp=$('#importDlg');
@@ -426,7 +443,7 @@ function groupByPart(){
 }
 function locText(rows){
   return rows.slice().sort((a,b)=>palOrder(a.pal,b.pal)).map(r=>{
-    let s='['+r.pal+'번] ';
+    let s='['+esc(r.pal)+'번] ';
     if(r.boxes>0) s+=r.boxes+'박스';
     if(r.loose>0) s+=(r.boxes>0?' + ':'')+'낱개'+r.loose;
     if(r.boxes===0&&r.loose===0) s+='0';
@@ -435,10 +452,11 @@ function locText(rows){
 }
 function partTotal(rows){ return rows.reduce((s,r)=>s+r.boxes*(r.per||0)+r.loose,0); }
 function render(){
-  const groups=groupByPart();
+  let groups=groupByPart();
+  if(partFilter) groups=groups.filter(g=>g.name.toLowerCase().includes(partFilter));
   const tb=$('#partTbl tbody'); tb.innerHTML='';
   groups.forEach(g=>{ const tot=partTotal(g.rows); const tr=document.createElement('tr');
-    tr.innerHTML='<td><b>'+g.name+'</b></td><td class="num perCell" title="탭하면 박스당 수정" style="cursor:pointer;text-decoration:underline dotted">'+fmt(g.per)+'</td><td class="num">'+fmt(tot)+'</td><td class="loc">'+locText(g.rows)+'</td>'+
+    tr.innerHTML='<td><b>'+esc(g.name)+'</b></td><td class="num perCell" title="탭하면 박스당 수정" style="cursor:pointer;text-decoration:underline dotted">'+fmt(g.per)+'</td><td class="num">'+fmt(tot)+'</td><td class="loc">'+locText(g.rows)+'</td>'+
       '<td><button class="del" title="이 품목 삭제">×</button></td>';
     tr.querySelector('.del').onclick=()=>{ if(confirm(g.name+' 전체 삭제?')){ Object.keys(S.items).forEach(k=>{if(S.items[k].name===g.name)delete S.items[k]}); Object.keys(S.seen||{}).forEach(b=>{if(S.seen[b].name===g.name)delete S.seen[b]}); save(); render(); } };
     tr.querySelector('.perCell').onclick=()=>{ const v=prompt(g.name+' 박스당 수량', g.per||''); if(v===null)return; const p=parseInt(v)||0; if(!p){toast('숫자로 입력','warn');return;} M_PER[g.name]=p; Object.values(S.items).forEach(it=>{if(it.name===g.name)it.per=p}); save(); render(); };
@@ -451,14 +469,14 @@ function render(){
   pv.innerHTML = pals.length? pals.map(p=>{
     const rows=byPal[p].slice().sort((a,b)=>a.name.localeCompare(b.name));
     const sub=rows.reduce((s,r)=>s+r.boxes*(r.per||0)+r.loose,0);
-    return '<div style="margin-bottom:12px"><div class="row" style="justify-content:space-between"><b>['+p+'번]</b><span class="muted small">'+rows.length+'품목 · '+fmt(sub)+'개</span></div>'+
+    return '<div style="margin-bottom:12px"><div class="row" style="justify-content:space-between"><b>['+esc(p)+'번]</b><span class="muted small">'+rows.length+'품목 · '+fmt(sub)+'개</span></div>'+
       '<table><thead><tr><th>품명</th><th>박스</th><th>낱개</th><th>수량</th></tr></thead><tbody>'+
-      rows.map(r=>'<td><b>'+r.name+'</b></td><td class="num">'+(r.boxes||0)+'</td><td class="num">'+(r.loose?fmt(r.loose):'')+'</td><td class="num">'+fmt(r.boxes*(r.per||0)+r.loose)+'</td>').map(x=>'<tr>'+x+'</tr>').join('')+
+      rows.map(r=>'<td><b>'+esc(r.name)+'</b></td><td class="num">'+(r.boxes||0)+'</td><td class="num">'+(r.loose?fmt(r.loose):'')+'</td><td class="num">'+fmt(r.boxes*(r.per||0)+r.loose)+'</td>').map(x=>'<tr>'+x+'</tr>').join('')+
       '</tbody></table></div>';
   }).join('') : '<p class="muted">아직 없음</p>';
   // feed
   const ft=$('#feedTbl tbody'); ft.innerHTML=S.feed.slice(0,200).map((f,i)=>
-    '<tr><td>'+f.t+'</td><td>'+f.pal+'번</td><td>'+f.name+'</td><td>'+(typeof f.d==='number'?(f.d>0?'+'+f.d+'박스':f.d):f.d)+'</td>'+
+    '<tr><td>'+esc(f.t)+'</td><td>'+esc(f.pal)+'번</td><td>'+esc(f.name)+'</td><td>'+esc(typeof f.d==='number'?(f.d>0?'+'+f.d+'박스':f.d):f.d)+'</td>'+
     '<td><button class="del" data-i="'+i+'">취소</button></td></tr>').join('');
   $$('#feedTbl .del').forEach(b=>b.onclick=()=>undo(parseInt(b.dataset.i)));
   renderPending();
@@ -484,8 +502,23 @@ function makeXlsx(){ const aoa=[['품명','박스당','총 수량','파렛트별
   ws['!cols']=[{wch:16},{wch:9},{wch:11},{wch:60}]; const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'파렛트 정리'); XLSX.writeFile(wb,'파렛트누적_'+stamp()+'.xlsx'); toast('엑셀 저장'); }
 function stamp(){const d=new Date();return d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2)+'_'+('0'+d.getHours()).slice(-2)+('0'+d.getMinutes()).slice(-2);}
 
-$('#resetBtn').onclick=()=>{ if(confirm('스캔/누적 전부 초기화? (마스터·학습된 바코드도 함께)')){ S={pal:S.pal,items:{},learned:{},feed:[],pending:[],seen:{}}; save(); render(); toast('초기화'); } };
+$('#resetBtn').onclick=()=>{ if(!confirm('스캔/누적을 초기화할까요? (품목·파렛트·기록 삭제)')) return; const wipeLearned=confirm('학습된 바코드 연결도 함께 삭제할까요?\n\n[확인] = 학습까지 삭제 · [취소] = 학습 유지'); S={pal:S.pal,items:{},feed:[],pending:[],seen:{},learned:wipeLearned?{}:(S.learned||{})}; partFilter=''; if($('#partSearch'))$('#partSearch').value=''; save(); render(); toast(wipeLearned?'전체 초기화':'초기화(학습 유지)'); };
 $('#clearFeed').onclick=()=>{ S.feed=[]; save(); render(); };
+
+// ---- 검색 & 상태 백업/복원(진행상황 전체를 JSON으로) ----
+{ const ps=$('#partSearch'); if(ps) ps.addEventListener('input',e=>{ partFilter=e.target.value.trim().toLowerCase(); render(); }); }
+$('#backupBtn').onclick=()=>{ try{ dl('파렛트백업_'+stamp()+'.json', new Blob([JSON.stringify(S)],{type:'application/json'})); toast('백업 파일 저장됨'); }catch(e){ toast('백업 실패','err'); } };
+$('#restoreBtn').onclick=()=>$('#restoreIn').click();
+$('#restoreIn').addEventListener('change',e=>{ const f=e.target.files[0]; e.target.value=''; if(!f)return; const r=new FileReader();
+  r.onload=()=>{ let d; try{ d=JSON.parse(r.result); }catch(_){ toast('복원 실패 — JSON을 읽을 수 없음','err',3000); return; }
+    if(!d||typeof d!=='object'||typeof d.items!=='object'){ toast('복원 실패 — 올바른 백업 파일이 아님','err',3000); return; }
+    if(!confirm('현재 데이터를 백업 파일 내용으로 덮어씁니다. 진행할까요?')) return;
+    S=Object.assign({pal:'1',items:{},learned:{},feed:[],pending:[],seen:{}}, d);
+    if(!S.seen)S.seen={}; if(!S.pending)S.pending=[]; if(!S.learned)S.learned={}; if(!Array.isArray(S.feed))S.feed=[];
+    Object.values(S.items).forEach(it=>{ if(it&&it.per) M_PER[it.name]=it.per; });
+    partFilter=''; if($('#partSearch'))$('#partSearch').value='';
+    save(); buildQuick(); $('#palInput').value=S.pal; render(); toast('복원 완료'); };
+  r.readAsText(f); });
 
 // ---- misc ----
 let toastT; function toast(msg,kind,ms){ const t=$('#toast'); t.textContent=msg; t.className='toast show'+(kind?' '+kind:''); clearTimeout(toastT); toastT=setTimeout(()=>t.className='toast',ms||1400); }
@@ -494,7 +527,7 @@ $('#dingBtn').onclick=()=>{soundOn=!soundOn;$('#dingBtn').style.opacity=soundOn?
 function buzz(){ try{if(navigator.vibrate)navigator.vibrate([90,60,90]);}catch(e){} if(!soundOn)return; try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='square';o.frequency.value=220;o.connect(g);g.connect(audioCtx.destination);g.gain.setValueAtTime(.0001,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.3,audioCtx.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+.35);o.start();o.stop(audioCtx.currentTime+.36);}catch(e){} }
 function ding(){ if(!soundOn)return; try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=880;o.connect(g);g.connect(audioCtx.destination);g.gain.setValueAtTime(.0001,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.25,audioCtx.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+.12);o.start();o.stop(audioCtx.currentTime+.13);}catch(e){} }
 // datalist
-$('#masterList').innerHTML=MASTER.map(([n])=>'<option value="'+n+'">').join('');
+$('#masterList').innerHTML=MASTER.map(([n])=>'<option value="'+esc(n)+'">').join('');
 
 $('#palInput').value=S.pal; buildQuick(); render(); setTimeout(keepFocus,300);
 </script>
