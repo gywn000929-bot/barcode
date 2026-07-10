@@ -338,49 +338,58 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
 <!-- ============ SYNC VIEW ============ -->
 <div id="view-sync" class="hide"><main><div class="panel">
   <h2>☁️ 기기 간 동기화</h2>
-  <p class="lead">내 GitHub 저장소에 학습 데이터를 저장하면 <b>모든 컴퓨터에서 연동</b>되고, 변경마다 <b>커밋 기록</b>이 남습니다.</p>
+  <p class="lead">Firebase에 데이터를 저장하면, <b>어느 기기든 앱을 열기만 해도</b> 토큰·링크 없이 자동으로 저장·연동됩니다.</p>
 
   <div id="syncStatus" class="syncbanner off">🔌 아직 연결되지 않았습니다.</div>
 
   <div class="synccfg">
-    <label>GitHub 저장소 <span class="hint2">(owner/repo)</span></label>
-    <input class="field-title" id="ghRepo" placeholder="예: gywn000929-bot/WSJ" style="max-width:100%">
-    <label>액세스 토큰 <span class="hint2">(Personal Access Token · 이 브라우저에만 저장됩니다)</span></label>
-    <input class="field-title" id="ghToken" type="password" placeholder="ghp_… 또는 github_pat_…" style="max-width:100%">
-    <div class="cfgrow">
-      <div style="flex:1"><label>브랜치</label>
-        <input class="field-title" id="ghBranch" placeholder="main" style="max-width:100%"></div>
-      <div style="flex:1"><label>저장 폴더</label>
-        <input class="field-title" id="ghPath" placeholder="wsj-study" style="max-width:100%"></div>
-    </div>
+    <label>Realtime Database URL <span class="hint2">(Firebase 콘솔 → Realtime Database 에서 복사)</span></label>
+    <input class="field-title" id="fbUrl" placeholder="https://내프로젝트-default-rtdb.firebaseio.com" style="max-width:100%">
+    <label>백업 이름 <span class="hint2">(내 데이터를 담는 칸 이름 · 아무거나, 기본 study)</span></label>
+    <input class="field-title" id="fbPath" placeholder="study" style="max-width:100%">
     <div class="toolrow" style="margin-top:6px">
-      <button class="bigbtn primary" onclick="connectSync()">🔗 연결하고 동기화</button>
-      <button class="bigbtn" onclick="pullNow()">⬇️ 지금 불러오기</button>
-      <button class="bigbtn" onclick="pushNow()">⬆️ 지금 올리기</button>
-      <button class="bigbtn" onclick="disconnectSync()">연결 해제</button>
+      <button class="bigbtn primary" onclick="connectFirebase()">☁️ 자동 백업 켜기</button>
+      <button class="bigbtn" onclick="fbPull()">⬇️ 지금 불러오기</button>
+      <button class="bigbtn" onclick="fbPush()">⬆️ 지금 올리기</button>
+      <button class="bigbtn" onclick="disconnectFirebase()">끄기</button>
     </div>
-  </div>
-
-  <div class="synccfg" style="margin-top:14px">
-    <label>📱 다른 내 기기(폰) 자동 연결 <span class="hint2">— 연결된 뒤 링크를 만들어, 다른 폰에서 그 링크만 열면 토큰 입력 없이 자동 연결됩니다</span></label>
-    <div class="toolrow" style="margin:8px 0 0">
-      <button class="bigbtn primary" onclick="makeSyncLink()">🔗 연결 링크 만들기</button>
-      <button class="bigbtn" onclick="copySyncLink()" id="copyLinkBtn" style="display:none">📋 링크 복사</button>
-    </div>
-    <input class="field-title" id="syncLink" readonly placeholder="연결한 뒤 ‘연결 링크 만들기’를 누르세요" style="max-width:100%;margin-top:10px">
-    <p class="hint2" style="margin-top:6px">⚠️ 이 링크에는 토큰이 들어 있습니다. <b>내 기기에만</b> (예: 나에게 카톡 전송) 보내세요. 공개하지 마세요.</p>
   </div>
 
   <details class="howto">
-    <summary>🔑 토큰 만드는 법 (처음 한 번, 약 2분)</summary>
+    <summary>⚙️ Firebase 만드는 법 (처음 한 번, 약 5분 · 무료)</summary>
     <ol>
-      <li>GitHub 로그인 → <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Fine-grained token 만들기</a> 열기</li>
-      <li>Token name 아무거나 · Expiration 원하는 기간</li>
-      <li><b>Repository access</b> → “Only select repositories” → 이 학습용 저장소 선택</li>
-      <li><b>Permissions</b> → Repository permissions → <b>Contents</b> 를 <b>Read and write</b> 로</li>
-      <li>Generate token → 나온 토큰(<code>github_pat_…</code>)을 위 “액세스 토큰”에 붙여넣기</li>
+      <li><a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase 콘솔</a> 접속 → <b>프로젝트 만들기</b> (이름 아무거나, 애널리틱스는 꺼도 됨)</li>
+      <li>왼쪽 메뉴 <b>빌드 → Realtime Database</b> → <b>데이터베이스 만들기</b> → 위치 선택 → <b>테스트 모드로 시작</b></li>
+      <li>만들어진 화면 위쪽의 주소(<code>https://…firebaseio.com</code>)를 복사해 위 “Database URL”에 붙여넣기</li>
+      <li><b>☁️ 자동 백업 켜기</b> 누르면 끝. 다른 기기에서는 같은 URL만 넣으면 자동 연동됩니다.</li>
     </ol>
-    <p class="hint2">저장소는 <b>비공개(private)</b>를 권장합니다. 토큰은 저장소나 HTML에 절대 기록되지 않고, 이 브라우저 안에만 보관됩니다. 다른 사람 컴퓨터에서는 각자 토큰을 넣어야 합니다.</p>
+    <p class="hint2">더 편하게: 이 URL을 저에게 알려주시면 앱에 넣어 드려요. 그러면 <b>어느 기기든 그냥 열기만 해도</b> 자동 연동됩니다(입력조차 불필요). Firebase URL은 공개돼도 안전한 값입니다. 오래 안전하게 쓰려면 나중에 규칙(Rules)만 잠가두면 됩니다.</p>
+  </details>
+
+  <details class="howto">
+    <summary>🛠 고급: GitHub 저장소로 백업하기</summary>
+    <div class="synccfg" style="margin-top:6px;border:none;padding:0">
+      <label>GitHub 저장소 <span class="hint2">(owner/repo)</span></label>
+      <input class="field-title" id="ghRepo" placeholder="예: gywn000929-bot/WSJ" style="max-width:100%">
+      <label>액세스 토큰 <span class="hint2">(이 브라우저에만 저장)</span></label>
+      <input class="field-title" id="ghToken" type="password" placeholder="ghp_… 또는 github_pat_…" style="max-width:100%">
+      <div class="cfgrow">
+        <div style="flex:1"><label>브랜치</label>
+          <input class="field-title" id="ghBranch" placeholder="main" style="max-width:100%"></div>
+        <div style="flex:1"><label>저장 폴더</label>
+          <input class="field-title" id="ghPath" placeholder="wsj-study" style="max-width:100%"></div>
+      </div>
+      <div class="toolrow" style="margin-top:6px">
+        <button class="bigbtn primary" onclick="connectSync()">🔗 연결</button>
+        <button class="bigbtn" onclick="pullNow()">⬇️ 불러오기</button>
+        <button class="bigbtn" onclick="pushNow()">⬆️ 올리기</button>
+        <button class="bigbtn" onclick="makeSyncLink()">📱 기기 연결 링크</button>
+        <button class="bigbtn" onclick="disconnectSync()">해제</button>
+      </div>
+      <input class="field-title" id="syncLink" readonly placeholder="연결 뒤 ‘기기 연결 링크’를 누르면 링크가 복사됩니다" style="max-width:100%;margin-top:10px">
+      <span id="copyLinkBtn" style="display:none"></span>
+      <p class="hint2" style="margin-top:6px">GitHub 방식은 커밋 기록이 남지만, 기기마다 토큰(또는 링크)이 한 번 필요합니다. 링크에는 토큰이 들어 있으니 내 기기에만 보내세요.</p>
+    </div>
   </details>
 
   <h3>📜 학습 기록</h3>
@@ -411,7 +420,9 @@ const store = {
   get activity(){ try{return JSON.parse(localStorage.getItem('wsj_activity')||'[]')}catch(e){return []} },
   set activity(v){ localStorage.setItem('wsj_activity', JSON.stringify(v)) },
   get gh(){ try{return JSON.parse(localStorage.getItem('wsj_gh')||'null')}catch(e){return null} },
-  set gh(v){ v?localStorage.setItem('wsj_gh', JSON.stringify(v)):localStorage.removeItem('wsj_gh') }
+  set gh(v){ v?localStorage.setItem('wsj_gh', JSON.stringify(v)):localStorage.removeItem('wsj_gh') },
+  get fb(){ try{return JSON.parse(localStorage.getItem('wsj_fb')||'null')}catch(e){return null} },
+  set fb(v){ v?localStorage.setItem('wsj_fb', JSON.stringify(v)):localStorage.removeItem('wsj_fb') }
 };
 
 let curFilter='ALL', curArt=null, fontSize=null;
@@ -697,8 +708,8 @@ function renderVocab(){
       ${w.src?`<div class="src">📰 ${esc(w.src)}</div>`:''}
     </div>`).join('');
 }
-function delWord(w){ const v=store.vocab; delete v[w.toLowerCase()]; store.vocab=v; updateVCount(); renderVocab(); scheduleSync(); }
-function clearVocab(){ if(confirm('저장한 모든 단어를 삭제할까요?')){ store.vocab={}; updateVCount(); renderVocab(); scheduleSync(); } }
+function delWord(w){ w=w.toLowerCase(); const v=store.vocab; delete v[w]; store.vocab=v; updateVCount(); renderVocab(); fbRemoveVocab(w); scheduleSync(); }
+function clearVocab(){ if(confirm('저장한 모든 단어를 삭제할까요?')){ store.vocab={}; updateVCount(); renderVocab(); fbClearVocab(); scheduleSync(); } }
 function exportVocab(){
   const blob=new Blob([JSON.stringify(Object.values(store.vocab),null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
@@ -894,9 +905,10 @@ function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show')
 /* ================================================================
  *  Activity log (학습 기록)
  * ================================================================ */
+let actSeq=0;
 function logActivity(type, icon, text){
   const list=store.activity;
-  list.unshift({ t:Date.now(), type, icon, text });
+  list.unshift({ t:Date.now(), k:Date.now()+'-'+(actSeq++), type, icon, text });
   store.activity = list.slice(0,500);
   if(!$('#view-sync').classList.contains('hide')) renderActivity();
 }
@@ -1027,21 +1039,115 @@ async function pushState(){
   finally{ syncing=false; }
 }
 function scheduleSync(){
+  if(fbActive()){ clearTimeout(syncTimer); syncTimer=setTimeout(fbPush, 1200); return; }
   if(!syncCfg) return;
   clearTimeout(syncTimer);
   syncTimer=setTimeout(pushState, 1500);
 }
+
+/* ================================================================
+ *  Firebase auto-backup (no per-device setup)
+ *  If FIREBASE_URL is baked in (or set once in the app), every device
+ *  that opens the app auto-syncs — no tokens, no links.
+ * ================================================================ */
+const FIREBASE_URL = "";   // ← 여기에 Realtime Database URL을 넣으면 모든 기기가 자동 연동됩니다
+let fbBusy=false;
+function fbConf(){ const c=store.fb; const url=(c&&c.url)||FIREBASE_URL||''; if(!url) return null;
+  return { url:url.replace(/\/+$/,''), path:(c&&c.path)||'study' }; }
+function fbActive(){ return !!fbConf(); }
+function fbLabel(){ const c=fbConf(); return c?c.url.replace(/^https?:\/\//,'').split('.')[0]+'/'+c.path:''; }
+function fbKey(s){ return String(s).replace(/[.#$\[\]\/]/g,'_'); }
+async function fbReq(method, sub, body){
+  const c=fbConf(); if(!c) throw new Error('no firebase');
+  const url=c.url+'/'+c.path+(sub?'/'+sub:'')+'.json'+(method==='GET'?'?t='+Date.now():'');
+  const opt={ method, cache:'no-store' };
+  if(body!==undefined){ opt.headers={'Content-Type':'application/json'}; opt.body=JSON.stringify(body); }
+  const res=await fetch(url,opt);
+  if(!res.ok) throw new Error('Firebase '+res.status+(res.status===401?' (규칙 확인)':res.status===404?' (URL 확인)':''));
+  return res.status===200 ? res.json() : null;
+}
+async function fbPull(silent){
+  if(!fbActive()) return;
+  if(!silent) setSyncStatus('busy','⏳ 불러오는 중…');
+  try{
+    const d=await fbReq('GET','');
+    if(d){
+      const v=store.vocab;
+      for(const [k,val] of Object.entries(d.vocab||{})){ if(val && (!v[k]||(val.ts||0)>=(v[k].ts||0))) v[k]=val; }
+      store.vocab=v;
+      const r=new Set(store.read);
+      Object.keys(d.read||{}).forEach(id=>{ r.add(/^\d+$/.test(id)?+id:id); });
+      store.read=[...r];
+      store.quiz=String(Math.max(+(store.quiz||0), +(d.quiz||0)));
+      // activity merge (dedupe by k)
+      const seen=new Set(store.activity.map(a=>a.k||(a.t+'|'+a.text))), acts=store.activity.slice();
+      Object.values(d.activity||{}).forEach(a=>{ const key=a.k||(a.t+'|'+a.text); if(!seen.has(key)){ seen.add(key); acts.push(a);} });
+      acts.sort((x,y)=>y.t-x.t); store.activity=acts.slice(0,500);
+      // papers
+      for(const [id,paper] of Object.entries(d.papers||{})){
+        if(paper && paper.articles && !store.papers.some(p=>p.id===paper.id)){
+          const papers=store.papers; papers.push(paper); store.papers=papers;
+          loadPaperIntoART(paper); uploadedPapers.add(paper.id);
+        }
+      }
+    }
+    renderSectFilter(); renderList(); updateVCount();
+    if(!$('#view-vocab').classList.contains('hide')) renderVocab();
+    if(!$('#view-sync').classList.contains('hide')) renderActivity();
+    setSyncStatus('on','✅ 자동 백업 켜짐 · '+fbLabel()+' <span class="hint2">('+fmtTime(Date.now())+')</span>');
+  }catch(e){ setSyncStatus('err','⚠️ '+e.message); }
+}
+async function fbPush(){
+  if(!fbActive()||fbBusy) return; fbBusy=true;
+  try{
+    setSyncStatus('busy','⏳ 저장 중…');
+    for(const p of store.papers){ if(!uploadedPapers.has(p.id)){ await fbReq('PUT','papers/'+fbKey(p.id),p); uploadedPapers.add(p.id); } }
+    // child-level PATCH → merges per-key, never clobbers other devices' new keys
+    if(Object.keys(store.vocab).length) await fbReq('PATCH','vocab', store.vocab);
+    const readMap=Object.fromEntries(store.read.map(id=>[fbKey(String(id)),true]));
+    if(Object.keys(readMap).length) await fbReq('PATCH','read', readMap);
+    const actMap=Object.fromEntries(store.activity.map(a=>[a.k||String(a.t), a]));
+    if(Object.keys(actMap).length) await fbReq('PATCH','activity', actMap);
+    await fbReq('PATCH','', { quiz:String(store.quiz||'0') });
+    setSyncStatus('on','✅ 자동 백업 켜짐 · '+fbLabel()+' <span class="hint2">('+fmtTime(Date.now())+' 저장됨)</span>');
+  }catch(e){ setSyncStatus('err','⚠️ '+e.message); }
+  finally{ fbBusy=false; }
+}
+async function fbRemoveVocab(word){ if(fbActive()){ try{ await fbReq('PATCH','vocab',{[word]:null}); }catch(e){} } }
+async function fbClearVocab(){ if(fbActive()){ try{ await fbReq('PUT','vocab',{}); }catch(e){} } }
+function connectFirebase(){
+  const url=($('#fbUrl').value||'').trim();
+  const path=($('#fbPath').value||'study').trim().replace(/[.#$\[\]\/\s]/g,'')||'study';
+  if(!/^https:\/\/.+firebase.*\.(com|app)/.test(url) && !/firebaseio\.com/.test(url)){
+    toast('Realtime Database URL을 확인하세요 (https://...firebaseio.com)'); return; }
+  store.fb={url,path}; uploadedPapers=new Set();
+  logActivity('sync','☁️','자동 백업 연결: '+fbLabel());
+  setSyncStatus('busy','⏳ 연결 확인 중…');
+  fbPull().then(()=>fbPush()).then(startPoll);
+  toast('☁️ 자동 백업이 켜졌습니다');
+}
+function disconnectFirebase(){ store.fb=null; clearInterval(pollTimer); clearTimeout(syncTimer);
+  setSyncStatus('off','🔌 자동 백업을 껐습니다. (이 기기 데이터는 유지)'); $('#syncdot').className='syncdot';
+  toast('자동 백업을 껐습니다'); }
 function startPoll(){
   clearInterval(pollTimer);
-  pollTimer=setInterval(()=>{ if(syncCfg && navigator.onLine && !document.hidden && !syncing) pullState(true); }, 60000);
+  pollTimer=setInterval(()=>{
+    if(!navigator.onLine || document.hidden) return;
+    if(fbActive() && !fbBusy) fbPull(true);
+    else if(syncCfg && !syncing) pullState(true);
+  }, fbActive()?20000:60000);
 }
 
 /* --------------- Sync UI --------------- */
 function renderSync(){
+  const fb=store.fb;
+  if(fb){ $('#fbUrl').value=fb.url; $('#fbPath').value=fb.path||'study'; }
+  else{ $('#fbPath').value=$('#fbPath').value||'study'; }
   const c=store.gh;
   if(c){ $('#ghRepo').value=c.repo; $('#ghToken').value=c.token; $('#ghBranch').value=c.branch; $('#ghPath').value=c.path; }
   else{ $('#ghBranch').value=$('#ghBranch').value||'main'; $('#ghPath').value=$('#ghPath').value||'wsj-study'; }
-  if(syncCfg) setSyncStatus('on','✅ 연결됨 · '+syncCfg.repo);
+  if(fbActive()) setSyncStatus('on','✅ 자동 백업 켜짐 · '+fbLabel());
+  else if(syncCfg) setSyncStatus('on','✅ 연결됨 · '+syncCfg.repo);
   else setSyncStatus('off','🔌 아직 연결되지 않았습니다.');
   renderActivity();
 }
@@ -1098,14 +1204,19 @@ function applyConnectHash(){
   return false;
 }
 
-window.addEventListener('visibilitychange',()=>{ if(!document.hidden && syncCfg && navigator.onLine) pullState(true); });
+window.addEventListener('visibilitychange',()=>{ if(document.hidden || !navigator.onLine) return;
+  if(fbActive()) fbPull(true); else if(syncCfg) pullState(true); });
 
 /* ---------------- boot ---------------- */
-const fromLink=applyConnectHash();   // one-tap link on a new device
+const fromLink=applyConnectHash();   // one-tap link on a new device (GitHub mode)
 store.papers.forEach(loadPaperIntoART);
 renderSectFilter(); renderList(); updateVCount();
 if(ART.length) openArticle(ART[0].id);
-if(syncCfg){ setSyncStatus('busy','⏳ 동기화 중…'); $('#syncdot').className='syncdot on';
+if(fbActive()){          // Firebase auto-backup: zero-setup on every device
+  setSyncStatus('busy','⏳ 자동 백업 동기화 중…'); $('#syncdot').className='syncdot on';
+  fbPull().then(()=>fbPush()); startPoll();
+} else if(syncCfg){      // GitHub mode
+  setSyncStatus('busy','⏳ 동기화 중…'); $('#syncdot').className='syncdot on';
   pullState().then(()=>pushState()); startPoll();
   if(fromLink){ toast('📱 이 기기가 연결되었습니다'); logActivity('sync','📱','새 기기 연결됨'); showView('sync'); }
 }
