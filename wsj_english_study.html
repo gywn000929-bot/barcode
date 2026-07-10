@@ -2,192 +2,264 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>WSJ English Study · 월스트리트 저널로 영어 공부</title>
 <style>
 :root{
-  --bg:#f4f1ea; --paper:#fbfaf6; --ink:#1a1a1a; --sub:#555; --line:#d8d2c4;
-  --accent:#0b3d91; --accent2:#8a1c1c; --hl:#fff1a8; --hl2:#ffe27a;
-  --card:#ffffff; --shadow:0 6px 24px rgba(0,0,0,.14); --chip:#efeadd;
+  --bg:#faf9f6; --surface:#ffffff; --ink:#16130f; --sub:#6a655d; --faint:#94908a;
+  --line:#e7e3da; --line2:#efece5; --accent:#0a3d62; --accent-soft:#e8eef5;
+  --mark:#f6ecc9; --mark-line:#d8b84a; --good:#2f8f57;
+  --shadow:0 10px 40px rgba(20,16,10,.12); --radius:14px;
+  --serif:Georgia,"Times New Roman",'Nanum Myeongjo',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+  --measure:37rem; --fs:20px;
 }
 html[data-theme="dark"]{
-  --bg:#14171c; --paper:#1b1f26; --ink:#e9e6df; --sub:#9aa0a8; --line:#2b313a;
-  --accent:#6ea8ff; --accent2:#ff8a8a; --hl:#5a4b18; --hl2:#7a6620;
-  --card:#20252d; --shadow:0 8px 30px rgba(0,0,0,.5); --chip:#262c35;
+  --bg:#0f1216; --surface:#171b21; --ink:#e9e6df; --sub:#a2a8b0; --faint:#767c85;
+  --line:#262b33; --line2:#1e232a; --accent:#7fb0ff; --accent-soft:#1c2836;
+  --mark:#3d3413; --mark-line:#6f5d1e; --good:#4cba7a;
+  --shadow:0 14px 50px rgba(0,0,0,.55);
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);
-  font-family:Georgia,"Times New Roman",'Nanum Myeongjo',serif;line-height:1.6;
-  -webkit-font-smoothing:antialiased;}
-button{font-family:inherit;cursor:pointer}
-a{color:var(--accent)}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
+button{font-family:inherit;cursor:pointer;color:inherit}
+a{color:var(--accent);text-decoration:none}
+::selection{background:var(--mark)}
 
 /* ---------- Masthead ---------- */
 header.masthead{
-  background:var(--paper);border-bottom:3px double var(--ink);
-  padding:10px 18px;position:sticky;top:0;z-index:50;
-  display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 1px 0 var(--line);
+  background:var(--surface);border-bottom:1px solid var(--line);
+  padding:12px clamp(14px,4vw,28px);position:sticky;top:0;z-index:60;
+  display:flex;align-items:center;gap:14px;
 }
-.brand{display:flex;flex-direction:column;line-height:1.1}
-.brand .k{font-size:11px;letter-spacing:3px;color:var(--sub);text-transform:uppercase}
-.brand .t{font-size:26px;font-weight:700;letter-spacing:-.5px}
-.brand .t b{color:var(--accent2)}
-.masthead .meta{font-size:12px;color:var(--sub);border-left:1px solid var(--line);
-  border-right:1px solid var(--line);padding:0 14px;text-align:center}
+.iconbtn{width:40px;height:40px;border:1px solid var(--line);background:var(--surface);
+  border-radius:10px;display:none;align-items:center;justify-content:center;font-size:18px;flex:none}
+.iconbtn:hover{border-color:var(--accent)}
+.brand{display:flex;flex-direction:column;line-height:1.05;min-width:0}
+.brand .k{font-size:9.5px;letter-spacing:2.5px;color:var(--faint);text-transform:uppercase;font-weight:600}
+.brand .t{font-family:var(--serif);font-size:clamp(18px,3.4vw,25px);font-weight:700;letter-spacing:-.4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .spacer{flex:1}
-.navbtns{display:flex;gap:8px;flex-wrap:wrap}
-.navbtns button{
-  border:1px solid var(--line);background:var(--card);color:var(--ink);
-  padding:8px 12px;border-radius:8px;font-size:13px;display:flex;align-items:center;gap:6px}
-.navbtns button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.navbtns button:hover{border-color:var(--accent)}
+.nav{display:flex;gap:6px;align-items:center}
+.nav button{border:1px solid transparent;background:transparent;color:var(--sub);
+  padding:9px 12px;border-radius:10px;font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:6px;
+  white-space:nowrap;transition:.15s}
+.nav button:hover{background:var(--line2);color:var(--ink)}
+.nav button.active{background:var(--accent);color:#fff}
+.nav button.active .badge{background:rgba(255,255,255,.25);color:#fff}
+.badge{background:var(--line2);color:var(--sub);border-radius:20px;padding:1px 7px;font-size:11px;font-weight:600}
+.nav .ghost{padding:9px 11px}
 
 /* ---------- Layout ---------- */
-.wrap{display:flex;max-width:1400px;margin:0 auto;min-height:calc(100vh - 66px)}
-aside{width:320px;flex:none;border-right:1px solid var(--line);background:var(--paper);
-  padding:14px;overflow-y:auto;max-height:calc(100vh - 66px);position:sticky;top:66px}
-main{flex:1;min-width:0;padding:26px 34px}
-@media(max-width:900px){
-  .wrap{flex-direction:column}
-  aside{width:auto;position:static;max-height:none;border-right:none;border-bottom:1px solid var(--line)}
-  main{padding:20px}
-}
+.wrap{display:grid;grid-template-columns:300px minmax(0,1fr);max-width:1360px;margin:0 auto;
+  min-height:calc(100vh - 65px)}
+aside{border-right:1px solid var(--line);background:var(--surface);
+  padding:16px;overflow-y:auto;max-height:calc(100vh - 65px);position:sticky;top:65px}
+main{min-width:0;padding:clamp(20px,4vw,48px) clamp(18px,5vw,64px)}
+#overlay{display:none;position:fixed;inset:0;background:rgba(20,16,10,.42);z-index:55;backdrop-filter:blur(1px)}
 
 /* ---------- Sidebar ---------- */
-.searchbox{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;
-  background:var(--card);color:var(--ink);font-size:13px;margin-bottom:10px}
-.sectfilter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.sectfilter button{font-size:11px;padding:4px 9px;border-radius:20px;border:1px solid var(--line);
-  background:var(--chip);color:var(--sub)}
-.sectfilter button.on{background:var(--accent2);color:#fff;border-color:var(--accent2)}
-.artitem{padding:10px 8px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:6px}
-.artitem:hover{background:var(--chip)}
-.artitem.sel{background:var(--chip);box-shadow:inset 3px 0 0 var(--accent2)}
-.artitem .h{font-size:14px;font-weight:700;line-height:1.3}
-.artitem .m{font-size:11px;color:var(--sub);margin-top:3px;display:flex;gap:8px;align-items:center}
-.artitem .sc{color:var(--accent2);font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-size:10px}
-.readdot{width:7px;height:7px;border-radius:50%;background:#39a35a;display:inline-block;margin-left:auto}
+.side-h{font-family:var(--serif);font-size:15px;font-weight:700;margin:2px 0 12px;color:var(--sub)}
+.searchbox{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;
+  background:var(--bg);color:var(--ink);font-size:14px;font-family:var(--sans);margin-bottom:12px;outline:none}
+.searchbox:focus{border-color:var(--accent)}
+.sectfilter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.sectfilter button{font-size:12px;padding:5px 11px;border-radius:20px;border:1px solid var(--line);
+  background:transparent;color:var(--sub);font-weight:500;transition:.15s}
+.sectfilter button:hover{border-color:var(--accent);color:var(--ink)}
+.sectfilter button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.artitem{padding:13px 10px;border-radius:11px;cursor:pointer;transition:.12s;position:relative}
+.artitem+.artitem{margin-top:2px}
+.artitem:hover{background:var(--line2)}
+.artitem.sel{background:var(--accent-soft)}
+.artitem .sc{color:var(--accent);font-weight:700;letter-spacing:.6px;text-transform:uppercase;font-size:10px}
+.artitem .h{font-family:var(--serif);font-size:15.5px;font-weight:600;line-height:1.32;margin:4px 0 5px}
+.artitem .m{font-size:11.5px;color:var(--faint);display:flex;gap:6px;align-items:center}
+.readdot{width:6px;height:6px;border-radius:50%;background:var(--good);display:inline-block;margin-left:auto}
+.emptymini{color:var(--faint);font-size:13px;padding:10px}
 
 /* ---------- Reader ---------- */
-.reader .kicker{color:var(--accent2);text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:700}
-.reader h1{font-size:clamp(26px,4vw,40px);line-height:1.15;margin:6px 0 8px;font-weight:800;letter-spacing:-.5px}
-.reader .byline{font-size:13px;color:var(--sub);border-bottom:1px solid var(--line);padding-bottom:12px;
-  margin-bottom:6px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 18px;
-  padding:10px;background:var(--paper);border:1px solid var(--line);border-radius:10px;position:sticky;top:66px;z-index:20}
-.toolbar button{border:1px solid var(--line);background:var(--card);color:var(--ink);
-  padding:7px 11px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:5px}
-.toolbar button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-.toolbar .grp{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub)}
-.toolbar input[type=range]{width:90px}
+.reader{max-width:calc(var(--measure) + 6rem);margin:0 auto}
+.reader .kicker{color:var(--accent);text-transform:uppercase;letter-spacing:2px;font-size:11.5px;font-weight:700}
+.reader h1{font-family:var(--serif);font-size:clamp(27px,4.6vw,44px);line-height:1.14;
+  margin:10px 0 14px;font-weight:800;letter-spacing:-.6px}
+.reader .byline{font-size:13px;color:var(--sub);border-bottom:1px solid var(--line);
+  padding-bottom:16px;display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center}
+.reader .byline b{color:var(--ink);font-weight:600;letter-spacing:.3px}
 
-.body{font-size:var(--fs,19px);line-height:1.85;max-width:44em}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0 26px;
+  padding:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  position:sticky;top:65px;z-index:30;box-shadow:0 2px 10px rgba(20,16,10,.03)}
+.toolbar button{border:1px solid transparent;background:transparent;color:var(--sub);
+  padding:8px 11px;border-radius:9px;font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:5px;
+  white-space:nowrap;flex:none}
+.toolbar button:hover{background:var(--line2);color:var(--ink)}
+.toolbar button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.toolbar .sep{width:1px;height:24px;background:var(--line);margin:0 2px}
+.toolbar .grp{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--faint);padding:0 4px;white-space:nowrap;flex:none}
+.toolbar input[type=range]{width:84px;accent-color:var(--accent)}
+
+.body{font-family:var(--serif);font-size:var(--fs);line-height:1.92;color:var(--ink)}
+.body p{margin:0 0 1.35em;max-width:var(--measure)}
+.body p:first-of-type::first-letter{font-size:3.1em;line-height:.86;float:left;font-weight:800;
+  padding:2px 10px 0 0;color:var(--ink)}
 .body .sent{transition:background .2s;border-radius:3px}
-.body .sent.speaking{background:var(--hl2)}
-.body.transmode .sent{cursor:pointer;border-bottom:1px dotted var(--line)}
-.body.transmode .sent:hover{background:var(--chip)}
-.w{cursor:pointer;border-radius:3px;padding:0 .5px}
-.w:hover{background:var(--hl)}
-.body.showvocab .w.vocab{background:var(--hl);border-bottom:2px solid var(--hl2);font-weight:600}
-.w.saved{background:var(--hl2);border-bottom:2px solid var(--accent2)}
-.ko-inline{display:block;color:var(--accent);font-size:.82em;font-style:italic;margin:2px 0 8px;
-  padding-left:10px;border-left:2px solid var(--accent)}
+.body .sent.speaking{background:var(--mark)}
+.body.transmode .sent{cursor:pointer}
+.body.transmode .sent:hover{background:var(--line2)}
+.w{cursor:pointer;border-radius:2px;transition:background .1s}
+.w:hover{background:var(--mark)}
+.body.showvocab .w.vocab{box-shadow:inset 0 -2px 0 var(--mark-line)}
+.w.saved{background:var(--mark);box-shadow:inset 0 -2px 0 var(--mark-line)}
+.ko-inline{display:block;color:var(--accent);font-family:var(--sans);font-size:.72em;
+  margin:.5em 0 1.1em;padding:10px 14px;background:var(--accent-soft);border-radius:10px;line-height:1.6}
+.readtip{font-family:var(--sans);font-size:12.5px;color:var(--faint);margin-top:34px;
+  padding-top:16px;border-top:1px solid var(--line)}
 
-.emptyhint{color:var(--sub);text-align:center;margin-top:14vh}
-.emptyhint .big{font-size:60px}
+.empty{text-align:center;margin-top:16vh;color:var(--sub)}
+.empty .big{font-size:52px;opacity:.5}
+.empty p{font-size:15px;line-height:1.9}
 
 /* ---------- Word popover ---------- */
-#pop{position:absolute;z-index:200;width:330px;max-width:92vw;background:var(--card);
-  border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:14px;display:none}
-#pop.show{display:block}
-#pop .pw{font-size:22px;font-weight:800}
-#pop .phon{color:var(--sub);font-size:13px;margin-left:6px;font-style:italic}
-#pop .row{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
-#pop .ko{background:var(--chip);border-radius:8px;padding:8px 10px;font-size:15px;margin:8px 0;color:var(--accent)}
-#pop .pos{color:var(--accent2);font-weight:700;font-size:12px;text-transform:uppercase;margin-top:8px}
-#pop .def{font-size:14px;margin:3px 0}
-#pop .ex{font-size:13px;color:var(--sub);font-style:italic;margin:2px 0 6px}
-#pop .mini{font-size:11px;color:var(--sub)}
-#pop button.act{border:none;background:var(--accent);color:#fff;padding:7px 12px;border-radius:8px;font-size:13px}
-#pop button.spk{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 9px}
-#pop .x{position:absolute;top:8px;right:10px;border:none;background:none;font-size:18px;color:var(--sub)}
-.loading{color:var(--sub);font-size:13px;font-style:italic}
+#pop{position:absolute;z-index:200;width:340px;max-width:calc(100vw - 24px);background:var(--surface);
+  border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px 18px;display:none}
+#pop.show{display:block;animation:pop .16s ease}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+#pop .pw{font-family:var(--serif);font-size:23px;font-weight:800}
+#pop .phon{color:var(--faint);font-size:13px;font-style:italic}
+#pop .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#pop .ko{background:var(--accent-soft);border-radius:10px;padding:9px 12px;font-size:15px;
+  margin:10px 0;color:var(--accent);font-weight:600;line-height:1.5}
+#pop .pos{color:var(--accent);font-weight:700;font-size:11px;text-transform:uppercase;
+  letter-spacing:.5px;margin-top:10px}
+#pop .def{font-size:14px;margin:3px 0;line-height:1.55}
+#pop .ex{font-size:13px;color:var(--sub);font-style:italic;margin:2px 0 4px}
+#pop .mini{font-size:12px;color:var(--faint)}
+#pop button.act{border:none;background:var(--accent);color:#fff;padding:9px 14px;border-radius:10px;
+  font-size:13px;font-weight:600;width:100%;margin-top:12px}
+#pop button.spk{border:1px solid var(--line);background:var(--surface);border-radius:9px;
+  padding:7px 10px;font-size:13px}
+#pop .x{position:absolute;top:10px;right:12px;border:none;background:none;font-size:17px;color:var(--faint)}
+.loading{color:var(--faint);font-size:13px;font-style:italic}
 
-/* ---------- Panels (vocab / import) ---------- */
-.panel{max-width:1000px;margin:0 auto}
-.panel h2{font-size:28px;border-bottom:3px double var(--ink);padding-bottom:8px}
-.stats{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0}
-.stat{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 18px;flex:1;min-width:130px}
-.stat .n{font-size:30px;font-weight:800;color:var(--accent2)}
-.stat .l{font-size:12px;color:var(--sub);text-transform:uppercase;letter-spacing:1px}
-.vcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px}
-.vcard .top{display:flex;align-items:center;gap:10px}
-.vcard .top .w{font-size:19px;font-weight:800;cursor:default}
-.vcard .top .p{color:var(--sub);font-size:13px;font-style:italic}
-.vcard .ko{color:var(--accent);font-weight:600}
-.vcard .en{font-size:14px;color:var(--sub);margin-top:4px}
-.vcard .src{font-size:11px;color:var(--sub);margin-top:6px}
-.vcard .del{margin-left:auto;border:none;background:none;color:var(--accent2);font-size:16px;cursor:pointer}
-.bigbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 16px;
-  border-radius:9px;font-size:14px;margin:4px 6px 4px 0}
+/* ---------- Panels ---------- */
+.panel{max-width:900px;margin:0 auto}
+.panel h2{font-family:var(--serif);font-size:clamp(24px,4vw,32px);margin:0 0 4px;font-weight:800}
+.panel .lead{color:var(--sub);font-size:14px;margin-bottom:20px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.stat .n{font-family:var(--serif);font-size:32px;font-weight:800;color:var(--accent)}
+.stat .l{font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
+.toolrow{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 22px}
+.bigbtn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:11px 16px;
+  border-radius:11px;font-size:13.5px;font-weight:500;transition:.15s}
+.bigbtn:hover{border-color:var(--accent)}
 .bigbtn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.bigbtn.primary:hover{filter:brightness(1.08)}
+.vcard{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px 16px;margin-bottom:10px}
+.vcard .top{display:flex;align-items:center;gap:10px}
+.vcard .top .w{font-family:var(--serif);font-size:19px;font-weight:800;cursor:default}
+.vcard .top .p{color:var(--faint);font-size:13px;font-style:italic}
+.vcard .ko{color:var(--accent);font-weight:600;margin-top:5px}
+.vcard .en{font-size:13.5px;color:var(--sub);margin-top:3px;line-height:1.5}
+.vcard .src{font-size:11.5px;color:var(--faint);margin-top:7px}
+.vcard .sspk{margin-left:auto;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 9px;font-size:13px}
+.vcard .del{margin-left:6px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 9px;font-size:13px;color:var(--accent)}
 
-/* flashcard */
-#flash{max-width:520px;margin:20px auto;text-align:center}
-.fcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:40px 24px;
+#flash{max-width:520px;margin:14px auto;text-align:center}
+.fcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:44px 24px;
   min-height:230px;box-shadow:var(--shadow);cursor:pointer;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:14px}
-.fcard .fw{font-size:34px;font-weight:800}
-.fcard .fp{color:var(--sub);font-style:italic}
-.fcard .fback{font-size:18px}
+  align-items:center;justify-content:center;gap:14px;user-select:none}
+.fcard .fw{font-family:var(--serif);font-size:36px;font-weight:800}
+.fcard .fp{color:var(--faint);font-style:italic}
 .fcard .fko{color:var(--accent);font-size:22px;font-weight:700}
-.fcard .hint{color:var(--sub);font-size:12px}
+.fcard .fback{font-size:16px;color:var(--sub);line-height:1.6}
+.fcard .hint{color:var(--faint);font-size:12px}
+.fcbtns{margin-top:16px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 
-/* dropzone */
-#drop{border:2px dashed var(--line);border-radius:14px;padding:40px;text-align:center;color:var(--sub);
-  background:var(--paper);margin:16px 0}
-#drop.over{border-color:var(--accent);background:var(--chip);color:var(--ink)}
-textarea{width:100%;min-height:160px;border:1px solid var(--line);border-radius:10px;padding:12px;
-  background:var(--card);color:var(--ink);font-family:inherit;font-size:15px}
+#drop{border:2px dashed var(--line);border-radius:16px;padding:44px 20px;text-align:center;color:var(--sub);
+  background:var(--surface);margin:18px 0;cursor:pointer;transition:.15s}
+#drop:hover,#drop.over{border-color:var(--accent);background:var(--accent-soft)}
+#drop .big{font-size:40px;opacity:.6}
+textarea{width:100%;min-height:150px;border:1px solid var(--line);border-radius:12px;padding:14px;
+  background:var(--surface);color:var(--ink);font-family:var(--serif);font-size:15px;line-height:1.7;outline:none}
+textarea:focus{border-color:var(--accent)}
+.guide{font-size:13.5px;color:var(--sub);line-height:1.8;background:var(--surface);border:1px solid var(--line);
+  border-radius:13px;padding:16px 18px}
+.field-title{width:100%;max-width:520px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;
+  background:var(--surface);color:var(--ink);font-size:14px;font-family:var(--sans);margin-bottom:10px;outline:none}
+h3{font-family:var(--serif);font-weight:700;margin:26px 0 10px}
+
 .hide{display:none!important}
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);
-  padding:11px 18px;border-radius:24px;font-size:14px;z-index:300;box-shadow:var(--shadow);opacity:0;
-  transition:opacity .3s;pointer-events:none}
-.toast.show{opacity:1}
-.guide{font-size:13px;color:var(--sub);line-height:1.7;background:var(--paper);border:1px solid var(--line);
-  border-radius:10px;padding:14px 16px}
-kbd{background:var(--chip);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:12px;font-family:inherit}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--ink);
+  color:var(--bg);padding:12px 20px;border-radius:24px;font-size:14px;z-index:300;box-shadow:var(--shadow);
+  opacity:0;transition:.3s;pointer-events:none;font-weight:500}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px;font-family:var(--sans)}
+
+/* ---------- Responsive ---------- */
+@media(max-width:960px){
+  .wrap{grid-template-columns:1fr}
+  .iconbtn{display:flex}
+  aside{position:fixed;top:0;left:0;bottom:0;width:min(85vw,320px);z-index:56;max-height:100vh;
+    transform:translateX(-100%);transition:transform .25s ease;box-shadow:var(--shadow);padding-top:18px}
+  body.drawer aside{transform:translateX(0)}
+  body.drawer #overlay{display:block}
+  .nav .label{display:none}
+  .nav button{padding:9px 10px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+  :root{--fs:18px}
+  header.masthead{gap:10px;padding:10px 14px}
+  .brand .k{font-size:8.5px;letter-spacing:2px}
+  main{padding:22px 18px}
+  .toolbar{top:61px;gap:4px;padding:6px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+  .toolbar::-webkit-scrollbar{display:none}
+  .toolbar .grp.hide-sm{display:none}
+  .body p:first-of-type::first-letter{font-size:2.6em}
+  #pop.show{position:fixed;left:0!important;right:0;bottom:0;top:auto!important;width:100%;max-width:100%;
+    border-radius:18px 18px 0 0;padding:20px;animation:sheet .22s ease}
+  @keyframes sheet{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .fcard{padding:38px 18px}
+}
+@media(max-width:380px){ .nav button.hide-xs{display:none} }
 </style>
 </head>
 <body>
 
 <header class="masthead">
+  <button class="iconbtn" id="menuBtn" onclick="toggleDrawer()" aria-label="목록 열기">☰</button>
   <div class="brand">
     <span class="k">English Study Edition</span>
-    <span class="t">The Wall Street <b>Journal</b></span>
+    <span class="t">The Wall Street Journal</span>
   </div>
-  <div class="meta" id="issueMeta">Tuesday<br>June 30, 2026</div>
   <div class="spacer"></div>
-  <div class="navbtns">
-    <button id="navRead" class="active" onclick="showView('read')">📰 리딩</button>
-    <button id="navVocab" onclick="showView('vocab')">📒 단어장 <span id="vcount">(0)</span></button>
-    <button id="navImport" onclick="showView('import')">➕ 신문 넣기</button>
-    <button id="themeBtn" onclick="toggleTheme()">🌙</button>
-  </div>
+  <nav class="nav">
+    <button id="navRead" class="active" onclick="showView('read')">📰<span class="label">리딩</span></button>
+    <button id="navVocab" onclick="showView('vocab')">📒<span class="label">단어장</span> <span class="badge" id="vcount">0</span></button>
+    <button id="navImport" class="hide-xs" onclick="showView('import')">➕<span class="label">신문 넣기</span></button>
+    <button class="ghost" id="themeBtn" onclick="toggleTheme()" aria-label="테마">🌙</button>
+  </nav>
 </header>
+
+<div id="overlay" onclick="closeDrawer()"></div>
 
 <!-- ============ READ VIEW ============ -->
 <div id="view-read" class="wrap">
-  <aside>
-    <input class="searchbox" id="search" placeholder="🔍 기사 검색 (제목·본문)" oninput="renderList()">
+  <aside id="sidebar">
+    <div class="side-h">기사 목록</div>
+    <input class="searchbox" id="search" placeholder="🔍 제목·본문 검색" oninput="renderList()">
     <div class="sectfilter" id="sectfilter"></div>
     <div id="artlist"></div>
   </aside>
   <main>
     <div id="reader" class="reader">
-      <div class="emptyhint">
+      <div class="empty">
         <div class="big">📖</div>
-        <p>왼쪽에서 기사를 선택하세요.<br>단어를 <b>클릭</b>하면 발음·뜻·한국어 번역이 나옵니다.</p>
+        <p>왼쪽에서 기사를 선택하세요.<br>단어를 <b>탭</b>하면 발음·뜻·한국어 번역이 나옵니다.</p>
       </div>
     </div>
   </main>
@@ -195,20 +267,20 @@ kbd{background:var(--chip);border:1px solid var(--line);border-radius:4px;paddin
 
 <!-- ============ VOCAB VIEW ============ -->
 <div id="view-vocab" class="hide"><main><div class="panel">
-  <h2>📒 나의 단어장</h2>
+  <h2>나의 단어장</h2>
+  <p class="lead">저장한 단어는 이 브라우저에 자동 보관됩니다.</p>
   <div class="stats">
-    <div class="stat"><div class="n" id="s-words">0</div><div class="l">저장한 단어</div></div>
+    <div class="stat"><div class="n" id="s-words">0</div><div class="l">저장 단어</div></div>
     <div class="stat"><div class="n" id="s-read">0</div><div class="l">읽은 기사</div></div>
     <div class="stat"><div class="n" id="s-total">0</div><div class="l">전체 기사</div></div>
-    <div class="stat"><div class="n" id="s-quiz">0%</div><div class="l">최근 퀴즈 점수</div></div>
+    <div class="stat"><div class="n" id="s-quiz">0%</div><div class="l">최근 퀴즈</div></div>
   </div>
-  <div style="margin:14px 0">
-    <button class="bigbtn primary" onclick="startFlash()">🃏 플래시카드 복습</button>
-    <button class="bigbtn primary" onclick="startQuiz()">✍️ 퀴즈 풀기</button>
-    <button class="bigbtn" onclick="exportVocab()">⬇️ 내보내기(JSON)</button>
+  <div class="toolrow">
+    <button class="bigbtn primary" onclick="startFlash()">🃏 플래시카드</button>
+    <button class="bigbtn primary" onclick="startQuiz()">✍️ 퀴즈</button>
+    <button class="bigbtn" onclick="exportVocab()">⬇️ 내보내기</button>
     <button class="bigbtn" onclick="clearVocab()">🗑️ 전체 삭제</button>
   </div>
-
   <div id="flash" class="hide"></div>
   <div id="quiz" class="hide"></div>
   <div id="vlist"></div>
@@ -216,22 +288,22 @@ kbd{background:var(--chip);border:1px solid var(--line);border-radius:4px;paddin
 
 <!-- ============ IMPORT VIEW ============ -->
 <div id="view-import" class="hide"><main><div class="panel">
-  <h2>➕ 새 월스트리트 저널 넣기</h2>
+  <h2>새 월스트리트 저널 넣기</h2>
+  <p class="lead">다음에 새 WSJ가 생기면 여기에 넣어 같은 방식으로 공부할 수 있어요.</p>
   <div class="guide">
-    다음에 새 WSJ PDF가 생기면 여기에 넣어 같은 방식으로 공부할 수 있습니다.<br>
-    ① PDF 파일을 아래 상자에 <b>드래그&드롭</b>하거나 클릭해 선택 → 자동으로 텍스트를 뽑아 리딩 목록에 추가합니다.<br>
-    ② 또는 기사 텍스트를 직접 <b>붙여넣기</b> 하세요. (인터넷 연결 시 PDF 해석·사전·번역 기능이 동작합니다.)
+    ① PDF를 아래 상자에 <b>드래그&드롭</b>하거나 클릭해 선택하면 자동으로 텍스트를 뽑아 리딩 목록에 추가합니다.<br>
+    ② 또는 기사 텍스트를 직접 <b>붙여넣기</b> 하세요. <span style="color:var(--faint)">(PDF 해석·사전·번역은 인터넷 연결 시 동작합니다.)</span>
   </div>
   <div id="drop">
-    <div style="font-size:44px">📄</div>
-    <p><b>WSJ PDF를 여기에 놓으세요</b><br><span class="mini">클릭해서 파일 선택도 가능</span></p>
+    <div class="big">📄</div>
+    <p><b>WSJ PDF를 여기에 놓으세요</b><br><span style="color:var(--faint);font-size:12px">클릭해서 파일 선택도 가능</span></p>
     <input type="file" id="pdfInput" accept="application/pdf" class="hide">
-    <div id="pdfStatus" class="loading"></div>
+    <div id="pdfStatus" class="loading" style="margin-top:8px"></div>
   </div>
   <h3>또는 텍스트 직접 붙여넣기</h3>
-  <input class="searchbox" id="pasteTitle" placeholder="제목 (예: My WSJ Article)" style="max-width:500px">
+  <input class="field-title" id="pasteTitle" placeholder="제목 (예: My WSJ Article)">
   <textarea id="pasteBody" placeholder="여기에 기사 본문을 붙여넣으세요..."></textarea>
-  <div style="margin-top:10px">
+  <div style="margin-top:12px">
     <button class="bigbtn primary" onclick="addPasted()">📥 리딩 목록에 추가</button>
   </div>
 </div></main></div>
@@ -257,8 +329,13 @@ const store = {
   set quiz(v){ localStorage.setItem('wsj_quiz', v) }
 };
 
-let curFilter='ALL', curArt=null, fontSize=19;
+let curFilter='ALL', curArt=null, fontSize=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const isMobile=()=>window.matchMedia('(max-width:640px)').matches;
+
+/* ---------------- Drawer (mobile) ---------------- */
+function toggleDrawer(){ document.body.classList.toggle('drawer'); }
+function closeDrawer(){ document.body.classList.remove('drawer'); }
 
 /* ---------------- View switching ---------------- */
 function showView(v){
@@ -267,7 +344,7 @@ function showView(v){
     $('#nav'+x[0].toUpperCase()+x.slice(1)).classList.toggle('active', x===v);
   });
   if(v==='vocab') renderVocab();
-  stopSpeak(); hidePop();
+  stopSpeak(); hidePop(); closeDrawer();
 }
 function toggleTheme(){
   const d=document.documentElement;
@@ -276,7 +353,7 @@ function toggleTheme(){
   $('#themeBtn').textContent = dark?'🌙':'☀️';
   localStorage.setItem('wsj_theme', dark?'light':'dark');
 }
-if(localStorage.getItem('wsj_theme')==='dark'){ document.documentElement.setAttribute('data-theme','dark'); }
+if(localStorage.getItem('wsj_theme')==='dark'){ document.documentElement.setAttribute('data-theme','dark'); $('#themeBtn').textContent='☀️'; }
 
 /* ---------------- Sidebar list ---------------- */
 function renderSectFilter(){
@@ -287,7 +364,7 @@ function renderSectFilter(){
     b.onclick=()=>{curFilter=val; renderSectFilter(); renderList();};
     box.appendChild(b);
   };
-  mk('전체',' ALL'.trim()); SECTIONS.forEach(s=>mk(s,s));
+  mk('전체','ALL'); SECTIONS.forEach(s=>mk(s,s));
 }
 function renderList(){
   const q=($('#search').value||'').toLowerCase();
@@ -295,14 +372,14 @@ function renderList(){
   const read=store.read;
   const items=ART.filter(a=>(curFilter==='ALL'||a.section===curFilter) &&
     (!q || a.headline.toLowerCase().includes(q) || a.body.toLowerCase().includes(q)));
-  if(!items.length){ list.innerHTML='<p class="mini" style="color:var(--sub)">검색 결과가 없습니다.</p>'; return; }
+  if(!items.length){ list.innerHTML='<p class="emptymini">검색 결과가 없습니다.</p>'; return; }
   items.forEach(a=>{
     const d=document.createElement('div');
     d.className='artitem'+(curArt&&curArt.id===a.id?' sel':'');
     d.onclick=()=>openArticle(a.id);
-    d.innerHTML=`<div class="h">${esc(a.headline)}</div>
-      <div class="m"><span class="sc">${esc(a.section)}</span>
-      <span>· ${a.minutes}분 · ${a.words}단어</span>
+    d.innerHTML=`<div class="sc">${esc(a.section)}</div>
+      <div class="h">${esc(a.headline)}</div>
+      <div class="m"><span>⏱ ${a.minutes}분</span><span>· ${a.words}단어</span>
       ${read.includes(a.id)?'<span class="readdot" title="읽음"></span>':''}</div>`;
     list.appendChild(d);
   });
@@ -311,42 +388,48 @@ function renderList(){
 /* ---------------- Article reader ---------------- */
 function tokenize(text){ return text.match(/[A-Za-z][A-Za-z''\-]*|[^A-Za-z]+/g)||[]; }
 function splitSentences(text){
-  return text.match(/[^.!?]+[.!?]+["'"']?\s*|[^.!?]+$/g)||[text];
+  return (text.match(/[^.!?]+[.!?]+["'"']?\s*|[^.!?]+$/g)||[text]).filter(s=>s.trim());
+}
+function renderSentence(s,si,a){
+  let inner=tokenize(s).map(tok=>{
+    if(/^[A-Za-z]/.test(tok)){
+      const lw=tok.toLowerCase().replace(/[''\-]+$/,'');
+      const cls='w'+(a.vocabSet.has(lw)?' vocab':'')+(isSaved(lw)?' saved':'');
+      return `<span class="${cls}" data-w="${esc(lw)}">${esc(tok)}</span>`;
+    }
+    return esc(tok);
+  }).join('');
+  return `<span class="sent" data-si="${si}">${inner}</span>`;
 }
 function openArticle(id){
   const a=ART.find(x=>x.id===id); if(!a) return;
-  curArt=a; stopSpeak(); hidePop();
+  curArt=a; stopSpeak(); hidePop(); closeDrawer();
   const r=store.read; if(!r.includes(id)){ r.push(id); store.read=r; }
   renderList();
   const sents=splitSentences(a.body);
-  let bodyHtml='';
-  sents.forEach((s,si)=>{
-    let inner=tokenize(s).map(tok=>{
-      if(/^[A-Za-z]/.test(tok)){
-        const lw=tok.toLowerCase().replace(/[''\-]+$/,'');
-        const cls='w'+(a.vocabSet.has(lw)?' vocab':'')+(isSaved(lw)?' saved':'');
-        return `<span class="${cls}" data-w="${esc(lw)}">${esc(tok)}</span>`;
-      }
-      return esc(tok);
-    }).join('');
-    bodyHtml+=`<span class="sent" data-si="${si}">${inner}</span>`;
-  });
+  let paras=[], si=0;
+  for(let i=0;i<sents.length;i+=3){
+    const chunk=sents.slice(i,i+3).map((s)=>renderSentence(s,si++,a)).join(' ');
+    paras.push(`<p>${chunk}</p>`);
+  }
   $('#reader').innerHTML=`
-    <div class="kicker">${esc(a.section)} · Page ${a.page||'—'}</div>
+    <div class="kicker">${esc(a.section)}${a.page?' · PAGE '+a.page:''}</div>
     <h1>${esc(a.headline)}</h1>
-    <div class="byline">${a.byline?esc(a.byline)+' · ':''}The Wall Street Journal · June 30, 2026
-      <span>· ⏱ ${a.minutes}분 읽기</span></div>
+    <div class="byline">${a.byline?'<b>'+esc(a.byline)+'</b>':''}
+      <span>The Wall Street Journal · June 30, 2026</span></div>
     <div class="toolbar">
-      <button id="btnPlay" onclick="toggleSpeak()">🔊 전체 읽기</button>
-      <div class="grp">속도 <input type="range" min="0.6" max="1.4" step="0.1" value="1"
-          oninput="rate=+this.value;valLbl(this)"> <span id="rateLbl">1.0x</span></div>
+      <button id="btnPlay" onclick="toggleSpeak()">🔊 <span class="tl">듣기</span></button>
+      <div class="grp hide-sm">속도<input type="range" min="0.6" max="1.4" step="0.1" value="1"
+          oninput="rate=+this.value;valLbl(this)"><span id="rateLbl">1.0×</span></div>
+      <span class="sep"></span>
       <button id="btnVocab" onclick="toggleVocabHL()" class="on">✨ 핵심어휘</button>
       <button id="btnTrans" onclick="toggleTrans()">🇰🇷 문장번역</button>
-      <div class="grp">글자 <button onclick="setFont(-1)">A−</button><button onclick="setFont(1)">A＋</button></div>
+      <span class="sep"></span>
+      <div class="grp">글자<button onclick="setFont(-1)" style="padding:6px 9px">A−</button><button onclick="setFont(1)" style="padding:6px 9px">A＋</button></div>
     </div>
-    <div class="body showvocab" id="artbody" style="--fs:${fontSize}px">${bodyHtml}</div>
-    <p class="mini" style="color:var(--sub);margin-top:24px">
-      💡 팁: 단어 클릭 → 뜻/발음/번역 · 🔊로 전체 낭독 · 🇰🇷 켜면 문장 클릭 시 한국어 해석</p>`;
+    <div class="body showvocab" id="artbody">${paras.join('')}</div>
+    <p class="readtip">💡 단어 탭 → 뜻·발음·번역 · <b>🔊 듣기</b>로 낭독 · <b>🇰🇷</b> 켜고 문장 탭 → 한국어 해석</p>`;
+  if(fontSize) $('#artbody').style.setProperty('--fs',fontSize+'px');
   bindWords();
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -360,9 +443,12 @@ function bindWords(){
     translateSentence(el);
   }));
 }
-function setFont(d){ fontSize=Math.max(14,Math.min(30,fontSize+d*2));
-  const b=$('#artbody'); if(b) b.style.setProperty('--fs',fontSize+'px'); }
-function valLbl(el){ $('#rateLbl').textContent=(+el.value).toFixed(1)+'x'; }
+function setFont(d){
+  const cur=fontSize||parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fs'))||20;
+  fontSize=Math.max(15,Math.min(30,cur+d*1.5));
+  const b=$('#artbody'); if(b) b.style.setProperty('--fs',fontSize+'px');
+}
+function valLbl(el){ $('#rateLbl').textContent=(+el.value).toFixed(1)+'×'; }
 
 let vocabHL=true;
 function toggleVocabHL(){ vocabHL=!vocabHL;
@@ -374,11 +460,11 @@ let transMode=false;
 function toggleTrans(){ transMode=!transMode;
   $('#artbody').classList.toggle('transmode',transMode);
   $('#btnTrans').classList.toggle('on',transMode);
-  toast(transMode?'문장을 클릭하면 한국어 번역이 나옵니다':'문장번역 끔');
+  toast(transMode?'문장을 탭하면 한국어 번역이 나옵니다':'문장번역 끔');
 }
 async function translateSentence(el){
-  if(el.nextElementSibling && el.nextElementSibling.classList.contains('ko-inline')){
-    el.nextElementSibling.remove(); return;
+  if(el.nextSibling && el.nextSibling.classList && el.nextSibling.classList.contains('ko-inline')){
+    el.nextSibling.remove(); return;
   }
   const txt=el.textContent.trim(); if(!txt) return;
   const ko=document.createElement('span'); ko.className='ko-inline'; ko.textContent='번역 중…';
@@ -390,26 +476,23 @@ async function translateSentence(el){
 /* ---------------- Word popover ---------------- */
 async function showWord(word, anchor){
   const pop=$('#pop');
-  const rect=anchor.getBoundingClientRect();
-  pop.style.left=Math.min(window.scrollX+rect.left, window.scrollX+document.documentElement.clientWidth-345)+'px';
-  pop.style.top =(window.scrollY+rect.bottom+8)+'px';
   pop.className='show';
+  if(!isMobile()){
+    const rect=anchor.getBoundingClientRect();
+    pop.style.left=Math.max(12,Math.min(window.scrollX+rect.left, window.scrollX+document.documentElement.clientWidth-352))+'px';
+    pop.style.top =(window.scrollY+rect.bottom+8)+'px';
+  }else{ pop.style.left=''; pop.style.top=''; }
   pop.innerHTML=`<button class="x" onclick="hidePop()">✕</button>
     <div class="row"><span class="pw">${esc(word)}</span>
       <button class="spk" onclick="speakWord('${esc(word)}')">🔊</button></div>
     <div class="ko" id="popko"><span class="loading">한국어 뜻 불러오는 중…</span></div>
     <div id="popdef"><span class="loading">사전 정의 불러오는 중…</span></div>
-    <div class="row" style="margin-top:10px">
-      <button class="act" id="popsave" onclick="saveWord('${esc(word)}')">＋ 단어장에 저장</button>
-    </div>`;
-  if(isSaved(word)){ $('#popsave').textContent='✓ 저장됨'; $('#popsave').style.background='#39a35a'; }
-  // Korean meaning
+    <button class="act" id="popsave" onclick="saveWord('${esc(word)}')">＋ 단어장에 저장</button>`;
+  if(isSaved(word)){ $('#popsave').textContent='✓ 저장됨 (탭하면 제거)'; $('#popsave').style.background='var(--good)'; }
   translateKO(word).then(t=>{ const e=$('#popko'); if(e) e.innerHTML = t?esc(t):'<span class="mini">번역을 불러올 수 없습니다</span>'; });
-  // English dictionary
   const data=await lookupDict(word);
   const box=$('#popdef'); if(!box) return;
-  if(!data){ box.innerHTML='<span class="mini">영영 사전 정의를 찾지 못했습니다. (오프라인이거나 미등록 단어)</span>'; return; }
-  window._lastDef={word, phon:data.phon, ko:$('#popko')?.textContent, def:data.firstDef};
+  if(!data){ box.innerHTML='<span class="mini">영영 사전 정의를 찾지 못했습니다.</span>'; return; }
   let html='';
   if(data.phon) html+=`<div class="mini"><span class="phon">${esc(data.phon)}</span></div>`;
   data.meanings.slice(0,3).forEach(m=>{
@@ -438,8 +521,7 @@ async function lookupDict(word){
     let phon=e.phonetic || (e.phonetics||[]).map(p=>p.text).find(Boolean) || '';
     const meanings=(e.meanings||[]).map(m=>({pos:m.partOfSpeech,
       defs:(m.definitions||[]).map(d=>({definition:d.definition,example:d.example}))}));
-    const firstDef=meanings[0]?.defs[0]?.definition||'';
-    const out={phon,meanings,firstDef}; dictCache[word]=out; return out;
+    const out={phon,meanings,firstDef:meanings[0]?.defs[0]?.definition||''}; dictCache[word]=out; return out;
   }catch(e){ dictCache[word]=null; return null; }
 }
 async function translateKO(text){
@@ -462,7 +544,7 @@ function toggleSpeak(){ speaking?stopSpeak():startSpeak(); }
 function startSpeak(){
   if(!curArt) return;
   const sents=$$('#artbody .sent'); if(!sents.length) return;
-  speaking=true; $('#btnPlay').textContent='⏸ 일시정지'; $('#btnPlay').classList.add('on');
+  speaking=true; setPlayBtn(true);
   curUtterSents=sents; curSentIdx=0; speakNext();
 }
 function speakNext(){
@@ -479,8 +561,11 @@ function speakNext(){
 function stopSpeak(){
   speaking=false; speechSynthesis.cancel();
   $$('#artbody .sent').forEach(s=>s.classList.remove('speaking'));
-  const b=$('#btnPlay'); if(b){ b.textContent='🔊 전체 읽기'; b.classList.remove('on'); }
+  setPlayBtn(false);
 }
+function setPlayBtn(on){ const b=$('#btnPlay'); if(!b) return;
+  b.innerHTML = on?'⏸ <span class="tl">멈춤</span>':'🔊 <span class="tl">듣기</span>';
+  b.classList.toggle('on',on); }
 
 /* ---------------- Vocabulary storage ---------------- */
 function isSaved(w){ return !!store.vocab[w.toLowerCase()]; }
@@ -491,17 +576,16 @@ function saveWord(word){
   else{
     v[word]={ word, ko:'', en:'', phon:'', src:curArt?curArt.headline:'', ts:Date.now() };
     store.vocab=v;
-    // enrich async
     translateKO(word).then(t=>{ const vv=store.vocab; if(vv[word]){ vv[word].ko=t||''; store.vocab=vv; } });
     lookupDict(word).then(d=>{ const vv=store.vocab; if(vv[word]&&d){ vv[word].en=d.firstDef; vv[word].phon=d.phon; store.vocab=vv; } });
     toast('✓ 단어장에 저장했습니다');
   }
   updateVCount();
   const btn=$('#popsave'); if(btn){ const s=isSaved(word);
-    btn.textContent=s?'✓ 저장됨':'＋ 단어장에 저장'; btn.style.background=s?'#39a35a':''; }
+    btn.textContent=s?'✓ 저장됨 (탭하면 제거)':'＋ 단어장에 저장'; btn.style.background=s?'var(--good)':''; }
   $$('#artbody .w').forEach(el=>{ if(el.dataset.w===word) el.classList.toggle('saved',isSaved(word)); });
 }
-function updateVCount(){ const n=Object.keys(store.vocab).length; $('#vcount').textContent='('+n+')'; }
+function updateVCount(){ $('#vcount').textContent=Object.keys(store.vocab).length; }
 
 /* ---------------- Vocab panel ---------------- */
 function renderVocab(){
@@ -511,14 +595,14 @@ function renderVocab(){
   $('#s-total').textContent=ART.length;
   $('#s-quiz').textContent=store.quiz+'%';
   const box=$('#vlist'); $('#flash').classList.add('hide'); $('#quiz').classList.add('hide');
-  if(!words.length){ box.innerHTML='<p class="guide">아직 저장한 단어가 없습니다. 리딩 화면에서 단어를 클릭한 뒤 <b>＋ 단어장에 저장</b>을 눌러보세요.</p>'; return; }
+  if(!words.length){ box.innerHTML='<p class="guide">아직 저장한 단어가 없습니다. 리딩 화면에서 단어를 탭한 뒤 <b>＋ 단어장에 저장</b>을 눌러보세요.</p>'; return; }
   box.innerHTML=words.map(w=>`
     <div class="vcard">
       <div class="top">
         <span class="w">${esc(w.word)}</span>
         ${w.phon?`<span class="p">${esc(w.phon)}</span>`:''}
-        <button class="spk" style="border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:3px 8px" onclick="speakWord('${esc(w.word)}')">🔊</button>
-        <button class="del" title="삭제" onclick="delWord('${esc(w.word)}')">🗑️</button>
+        <button class="sspk" onclick="speakWord('${esc(w.word)}')">🔊</button>
+        <button class="del" title="삭제" onclick="delWord('${esc(w.word)}')">🗑</button>
       </div>
       ${w.ko?`<div class="ko">${esc(w.ko)}</div>`:''}
       ${w.en?`<div class="en">${esc(w.en)}</div>`:''}
@@ -545,16 +629,16 @@ function startFlash(){
 function renderFlash(){
   const w=fcDeck[fcIdx];
   $('#flash').innerHTML=`
-    <div class="mini" style="color:var(--sub)">${fcIdx+1} / ${fcDeck.length}</div>
+    <div class="mini" style="color:var(--faint);font-size:12px">${fcIdx+1} / ${fcDeck.length}</div>
     <div class="fcard" onclick="flipCard()">
       ${!fcFlipped?
         `<div class="fw">${esc(w.word)}</div>${w.phon?`<div class="fp">${esc(w.phon)}</div>`:''}
-         <div class="hint">카드를 클릭해 뜻 보기</div>`:
-        `<div class="fw" style="font-size:24px">${esc(w.word)}</div>
+         <div class="hint">카드를 탭해 뜻 보기</div>`:
+        `<div class="fw" style="font-size:26px">${esc(w.word)}</div>
          ${w.ko?`<div class="fko">${esc(w.ko)}</div>`:''}
          ${w.en?`<div class="fback">${esc(w.en)}</div>`:''}`}
     </div>
-    <div style="margin-top:16px">
+    <div class="fcbtns">
       <button class="bigbtn" onclick="event.stopPropagation();speakWord('${esc(w.word)}')">🔊 발음</button>
       <button class="bigbtn" onclick="prevCard()">← 이전</button>
       <button class="bigbtn primary" onclick="nextCard()">다음 →</button>
@@ -580,29 +664,29 @@ function renderQuiz(){
     const pct=Math.round(qScore/qDeck.length*100); store.quiz=String(pct);
     $('#quiz').innerHTML=`<div style="text-align:center;padding:30px">
       <div style="font-size:50px">${pct>=80?'🏆':pct>=50?'👍':'📚'}</div>
-      <h3>퀴즈 완료!</h3><p style="font-size:22px">${qDeck.length}문제 중 <b>${qScore}</b>개 정답 (${pct}%)</p>
-      <button class="bigbtn primary" onclick="startQuiz()">다시 풀기</button>
-      <button class="bigbtn" onclick="closeReview()">닫기</button></div>`; return;
+      <h3>퀴즈 완료!</h3><p style="font-size:20px">${qDeck.length}문제 중 <b>${qScore}</b>개 정답 (${pct}%)</p>
+      <div class="fcbtns"><button class="bigbtn primary" onclick="startQuiz()">다시 풀기</button>
+      <button class="bigbtn" onclick="closeReview()">닫기</button></div></div>`; return;
   }
   const w=qDeck[qIdx];
   const answer=w.ko||w.en;
   const pool=Object.values(store.vocab).filter(x=>(x.ko||x.en)&&x.word!==w.word);
   const opts=shuffle([answer, ...shuffle(pool).slice(0,3).map(x=>x.ko||x.en)]);
   $('#quiz').innerHTML=`
-    <div class="mini" style="color:var(--sub)">문제 ${qIdx+1} / ${qDeck.length} · 점수 ${qScore}</div>
-    <div style="text-align:center;margin:14px 0">
-      <div style="font-size:30px;font-weight:800">${esc(w.word)}</div>
-      <button class="bigbtn" onclick="speakWord('${esc(w.word)}')">🔊 발음</button>
-      <p class="mini" style="color:var(--sub)">알맞은 뜻을 고르세요</p>
+    <div class="mini" style="color:var(--faint);font-size:12px">문제 ${qIdx+1} / ${qDeck.length} · 점수 ${qScore}</div>
+    <div style="text-align:center;margin:16px 0">
+      <div style="font-family:var(--serif);font-size:30px;font-weight:800">${esc(w.word)}</div>
+      <button class="bigbtn" style="margin-top:8px" onclick="speakWord('${esc(w.word)}')">🔊 발음</button>
+      <p class="mini" style="color:var(--faint);margin-top:8px">알맞은 뜻을 고르세요</p>
     </div>
-    <div id="qopts">${opts.map(o=>`<button class="bigbtn" style="display:block;width:100%;text-align:left;margin:6px 0"
+    <div id="qopts">${opts.map(o=>`<button class="bigbtn" style="display:block;width:100%;text-align:left;margin:8px 0"
        onclick="answerQuiz(this,${o===answer})">${esc(o)}</button>`).join('')}</div>`;
 }
 function answerQuiz(btn,correct){
   $$('#qopts button').forEach(b=>b.disabled=true);
-  if(correct){ btn.style.background='#39a35a'; btn.style.color='#fff'; qScore++; }
-  else{ btn.style.background='var(--accent2)'; btn.style.color='#fff'; }
-  setTimeout(()=>{ qIdx++; renderQuiz(); }, 850);
+  if(correct){ btn.style.background='var(--good)'; btn.style.color='#fff'; qScore++; }
+  else{ btn.style.background='#c0392b'; btn.style.color='#fff'; }
+  setTimeout(()=>{ qIdx++; renderQuiz(); }, 800);
 }
 
 /* ---------------- Import: PDF & paste ---------------- */
@@ -612,7 +696,6 @@ function addArticle(headline, body, section='내가 추가한 기사', byline=''
   const words=body.split(' ').length;
   const a={id:dynId++, section, page:null, headline:headline||'제목 없음', byline,
     body, words, minutes:Math.max(1,Math.round(words/200)), vocab:[], vocabSet:new Set()};
-  // simple vocab: words length>=8 lowercase
   const cand=[...new Set((body.match(/[a-z]{8,}/g)||[]))].slice(0,14);
   a.vocab=cand; a.vocabSet=new Set(cand);
   ART.unshift(a);
@@ -626,7 +709,6 @@ function addPasted(){
   addArticle($('#pasteTitle').value.trim()||'붙여넣은 기사', b);
   $('#pasteBody').value=''; $('#pasteTitle').value='';
 }
-// PDF via pdf.js (lazy load)
 const drop=$('#drop'), pdfInput=$('#pdfInput');
 drop.onclick=()=>pdfInput.click();
 pdfInput.onchange=e=>{ if(e.target.files[0]) handlePDF(e.target.files[0]); };
@@ -650,14 +732,14 @@ async function handlePDF(file){
   const status=$('#pdfStatus'); status.textContent='📄 PDF 라이브러리 로드 중…';
   let pdfjs;
   try{ pdfjs=await loadPdfJs(); }
-  catch(e){ status.textContent='⚠️ 인터넷 연결이 필요합니다 (PDF 해석 라이브러리를 불러오지 못함). 텍스트 붙여넣기를 이용하세요.'; return; }
+  catch(e){ status.textContent='⚠️ 인터넷 연결이 필요합니다. 텍스트 붙여넣기를 이용하세요.'; return; }
   try{
     status.textContent='📖 텍스트 추출 중…';
     const buf=await file.arrayBuffer();
     const pdf=await pdfjs.getDocument({data:buf}).promise;
     let added=0;
     for(let p=1;p<=pdf.numPages;p++){
-      status.textContent=`📖 ${p}/${pdf.numPages} 페이지 분석 중… (기사 ${added}개 추출)`;
+      status.textContent=`📖 ${p}/${pdf.numPages} 페이지 분석 중… (기사 ${added}개)`;
       const page=await pdf.getPage(p);
       const tc=await page.getTextContent();
       const arts=extractArticlesFromPage(tc.items, file.name, p);
@@ -665,14 +747,12 @@ async function handlePDF(file){
     }
     if(!SECTIONS.includes('내가 넣은 신문')) SECTIONS.push('내가 넣은 신문');
     renderSectFilter(); renderList();
-    status.innerHTML=`✅ <b>${added}개</b> 기사를 추출해 리딩 목록에 추가했습니다! 상단 <b>📰 리딩</b>에서 확인하세요.`;
+    status.innerHTML=`✅ <b>${added}개</b> 기사를 추가했습니다! 상단 <b>📰 리딩</b>에서 확인하세요.`;
     toast(`✅ ${added}개 기사 추가 완료`);
-  }catch(e){ status.textContent='⚠️ PDF 처리 중 오류: '+e.message; }
+  }catch(e){ status.textContent='⚠️ PDF 처리 오류: '+e.message; }
 }
-// group text items into headline+body by font size, per page
 function extractArticlesFromPage(items, fname, pno){
-  const out=[]; let buf=[], curHead=null;
-  // compute heights
+  const out=[];
   const lines=items.filter(it=>it.str.trim());
   const sizes=lines.map(it=>Math.abs(it.transform[3])||it.height||0);
   const med=sizes.slice().sort((a,b)=>a-b)[Math.floor(sizes.length/2)]||8;
@@ -685,13 +765,12 @@ function extractArticlesFromPage(items, fname, pno){
   text=text.replace(/-\s+/g,'').replace(/\s+/g,' ').trim();
   if(text.split(' ').length<120) return out;
   const headline=heads.find(h=>/^[A-Z]/.test(h)&&h.split(' ').length>=3)||(`${fname} p.${pno}`);
-  const a={id:dynId++, section:'내가 넣은 신문', page:pno, headline,
-    byline:'', body:text, words:text.split(' ').length,
-    minutes:Math.max(1,Math.round(text.split(' ').length/200)), vocab:[], vocabSet:new Set()};
+  const a={id:dynId++, section:'내가 넣은 신문', page:pno, headline, byline:'', body:text,
+    words:text.split(' ').length, minutes:Math.max(1,Math.round(text.split(' ').length/200)),
+    vocab:[], vocabSet:new Set()};
   const cand=[...new Set((text.match(/[a-z]{8,}/g)||[]))].slice(0,14);
   a.vocab=cand; a.vocabSet=new Set(cand);
-  out.push(a);
-  return out;
+  out.push(a); return out;
 }
 
 /* ---------------- utils ---------------- */
