@@ -1050,7 +1050,7 @@ function scheduleSync(){
  *  If FIREBASE_URL is baked in (or set once in the app), every device
  *  that opens the app auto-syncs — no tokens, no links.
  * ================================================================ */
-const FIREBASE_URL = "";   // ← 여기에 Realtime Database URL을 넣으면 모든 기기가 자동 연동됩니다
+const FIREBASE_URL = "https://wall-street-57bf4-default-rtdb.firebaseio.com";   // ← 이 주소로 모든 기기가 자동 연동됩니다
 let fbBusy=false;
 function fbConf(){ const c=store.fb; const url=(c&&c.url)||FIREBASE_URL||''; if(!url) return null;
   return { url:url.replace(/\/+$/,''), path:(c&&c.path)||'study' }; }
