@@ -122,6 +122,49 @@ main{min-width:0;padding:clamp(20px,4vw,48px) clamp(18px,5vw,64px)}
 .empty .big{font-size:52px;opacity:.5}
 .empty p{font-size:15px;line-height:1.9}
 
+/* ---------- Sidebar date groups ---------- */
+.date-h{display:flex;align-items:center;gap:8px;margin:16px 4px 8px;font-family:var(--serif)}
+.date-h .d{font-weight:700;font-size:13px;color:var(--ink)}
+.date-h .np-open{margin-left:auto;font-size:11px;color:var(--accent);border:1px solid var(--line);
+  border-radius:20px;padding:3px 10px;background:transparent}
+.date-h .np-open:hover{border-color:var(--accent);background:var(--accent-soft)}
+.frontbadge{background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;
+  border-radius:3px;margin-right:5px;letter-spacing:.3px;vertical-align:middle}
+
+/* ---------- Newspaper (front-page) view ---------- */
+.np-back{margin:0 0 14px;font-size:13px}
+.np-masthead{text-align:center;border-bottom:3px double var(--ink);padding-bottom:10px;margin-bottom:2px}
+.np-masthead .np-title{font-family:var(--serif);font-weight:800;font-size:clamp(28px,6vw,52px);
+  letter-spacing:-1px;line-height:1}
+.np-masthead .np-sub{display:flex;justify-content:space-between;font-size:10.5px;color:var(--sub);
+  text-transform:uppercase;letter-spacing:1.5px;border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);padding:6px 2px;margin-top:10px}
+.np-frontgrid{display:grid;grid-template-columns:1.9fr 1fr;gap:24px;border-bottom:3px double var(--ink);
+  padding-bottom:20px;margin:16px 0}
+@media(max-width:760px){ .np-frontgrid{grid-template-columns:1fr;gap:16px} }
+.np-badge{display:inline-block;background:var(--accent);color:#fff;font-size:9.5px;font-weight:700;
+  padding:2px 7px;border-radius:3px;letter-spacing:.6px;margin-bottom:8px}
+.np-lead h2{font-family:var(--serif);font-size:clamp(25px,4.3vw,38px);line-height:1.1;font-weight:800;
+  margin:0 0 6px;cursor:pointer;letter-spacing:-.5px}
+.np-lead h2:hover{color:var(--accent)}
+.np-lead .np-byl{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+.np-lead .np-ex{font-family:var(--serif);font-size:15.5px;line-height:1.75;columns:2;column-gap:22px;text-align:justify}
+@media(max-width:760px){ .np-lead .np-ex{columns:1} }
+.np-lead .np-ex::first-letter{font-size:3em;float:left;font-weight:800;line-height:.8;padding:4px 9px 0 0}
+.np-side{border-left:1px solid var(--line);padding-left:20px}
+@media(max-width:760px){ .np-side{border-left:none;padding-left:0;border-top:2px solid var(--ink);padding-top:14px} }
+.np-item{padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer;break-inside:avoid}
+.np-item:last-child{border-bottom:none}
+.np-item:hover .np-h{color:var(--accent)}
+.np-item .np-h{font-family:var(--serif);font-weight:700;font-size:16px;line-height:1.28}
+.np-item .np-pg{color:var(--accent);font-weight:700;font-size:11px;margin-right:5px}
+.np-item .np-byl{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.np-item .np-ex2{font-size:13px;color:var(--sub);margin-top:5px;line-height:1.55}
+.np-section-h{font-family:var(--serif);font-weight:800;font-size:14px;text-transform:uppercase;
+  letter-spacing:1.5px;border-bottom:2px solid var(--ink);margin:22px 0 12px;padding-bottom:5px;color:var(--accent)}
+.np-inside{columns:2;column-gap:28px}
+@media(max-width:640px){ .np-inside{columns:1} }
+
 /* ---------- Word popover ---------- */
 #pop{position:absolute;z-index:200;width:340px;max-width:calc(100vw - 24px);background:var(--surface);
   border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px 18px;display:none}
@@ -328,7 +371,10 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
     <div id="pdfStatus" class="loading" style="margin-top:8px"></div>
   </div>
   <h3>또는 텍스트 직접 붙여넣기</h3>
-  <input class="field-title" id="pasteTitle" placeholder="제목 (예: My WSJ Article)">
+  <div class="cfgrow">
+    <div style="flex:2"><input class="field-title" id="pasteTitle" placeholder="제목 (예: My WSJ Article)" style="max-width:100%"></div>
+    <div style="flex:1"><input class="field-title" id="pasteDate" type="date" title="발행일" style="max-width:100%"></div>
+  </div>
   <textarea id="pasteBody" placeholder="여기에 기사 본문을 붙여넣으세요..."></textarea>
   <div style="margin-top:12px">
     <button class="bigbtn primary" onclick="addPasted()">📥 리딩 목록에 추가</button>
@@ -404,8 +450,9 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
 /* ============================================================= *
  *  WSJ English Study — client-side English learning workbench
  * ============================================================= */
+const ISSUE_DATE = "2026-06-30";   // 내장된 WSJ 발행일
 const ART = JSON.parse(document.getElementById('ARTICLE_DATA').textContent);
-ART.forEach(a=>a.vocabSet = new Set((a.vocab||[]).map(w=>w.toLowerCase())));
+ART.forEach(a=>{ a.vocabSet = new Set((a.vocab||[]).map(w=>w.toLowerCase())); if(!a.date) a.date=ISSUE_DATE; });
 const SECTIONS = [...new Set(ART.map(a=>a.section))];
 
 const store = {
@@ -463,6 +510,14 @@ function renderSectFilter(){
   };
   mk('전체','ALL'); SECTIONS.forEach(s=>mk(s,s));
 }
+const WD=['일','월','화','수','목','금','토'];
+function issueLabel(date){
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(date||'');
+  if(!m) return date||'날짜 미상';
+  const wd=WD[new Date(date+'T00:00:00').getDay()];
+  return `${+m[1]}. ${+m[2]}. ${+m[3]} (${wd})`;
+}
+function pageOf(a){ return a.page==null?999:a.page; }
 function renderList(){
   const q=($('#search').value||'').toLowerCase();
   const list=$('#artlist'); list.innerHTML='';
@@ -470,16 +525,66 @@ function renderList(){
   const items=ART.filter(a=>(curFilter==='ALL'||a.section===curFilter) &&
     (!q || a.headline.toLowerCase().includes(q) || a.body.toLowerCase().includes(q)));
   if(!items.length){ list.innerHTML='<p class="emptymini">검색 결과가 없습니다.</p>'; return; }
-  items.forEach(a=>{
-    const d=document.createElement('div');
-    d.className='artitem'+(curArt&&curArt.id===a.id?' sel':'');
-    d.onclick=()=>openArticle(a.id);
-    d.innerHTML=`<div class="sc">${esc(a.section)}</div>
-      <div class="h">${esc(a.headline)}</div>
-      <div class="m"><span>⏱ ${a.minutes}분</span><span>· ${a.words}단어</span>
-      ${read.includes(a.id)?'<span class="readdot" title="읽음"></span>':''}</div>`;
-    list.appendChild(d);
+  // group by issue date (newest first); within an issue, front page (p1) first
+  const groups={};
+  items.forEach(a=>{ const k=a.date||ISSUE_DATE; (groups[k]=groups[k]||[]).push(a); });
+  Object.keys(groups).sort().reverse().forEach(date=>{
+    const hd=document.createElement('div'); hd.className='date-h';
+    hd.innerHTML=`<span class="d">🗓 ${esc(issueLabel(date))}</span>
+      <button class="np-open" title="신문 지면처럼 보기" onclick="event.stopPropagation();openPaperView('${esc(date)}')">🗞️ 신문형</button>`;
+    list.appendChild(hd);
+    groups[date].sort((a,b)=>(pageOf(a)-pageOf(b))||(b.words-a.words)).forEach(a=>{
+      const d=document.createElement('div');
+      d.className='artitem'+(curArt&&String(curArt.id)===String(a.id)?' sel':'');
+      d.onclick=()=>openArticle(a.id);
+      d.innerHTML=`<div class="sc">${a.page===1?'<span class="frontbadge">1면</span>':''}${esc(a.section)}${a.page&&a.page!==1?' · p'+a.page:''}</div>
+        <div class="h">${esc(a.headline)}</div>
+        <div class="m"><span>⏱ ${a.minutes}분</span><span>· ${a.words}단어</span>
+        ${read.includes(a.id)?'<span class="readdot" title="읽음"></span>':''}</div>`;
+      list.appendChild(d);
+    });
   });
+}
+
+/* ---------------- Newspaper (front-page) view ---------------- */
+function npExcerpt(t,n){ let s=(t||'').slice(0,n); const i=s.lastIndexOf(' '); if(i>n*0.6)s=s.slice(0,i); return esc(s)+'…'; }
+function npItem(a,showEx){
+  return `<div class="np-item" onclick="openArticle('${esc(String(a.id))}')">
+    <div class="np-h">${a.page?'<span class="np-pg">p'+a.page+'</span>':''}${esc(a.headline)}</div>
+    ${a.byline?`<div class="np-byl">${esc(a.byline)}</div>`:''}
+    ${showEx?`<div class="np-ex2">${npExcerpt(a.body,110)}</div>`:''}</div>`;
+}
+function openPaperView(date){
+  closeDrawer(); stopSpeak(); hidePop(); curArt=null;
+  const arr=ART.filter(a=>(a.date||ISSUE_DATE)===date);
+  if(!arr.length){ toast('해당 날짜 기사가 없습니다'); return; }
+  const front=arr.filter(a=>a.page===1);
+  const pool=front.length?front:arr.slice().sort((a,b)=>pageOf(a)-pageOf(b));
+  const lead=pool.slice().sort((a,b)=>b.words-a.words)[0];
+  const frontOthers=(front.length?front:pool.slice(0,6)).filter(a=>a!==lead).sort((a,b)=>b.words-a.words);
+  const rest=arr.filter(a=>a!==lead && !frontOthers.includes(a)).sort((a,b)=>(pageOf(a)-pageOf(b))||(b.words-a.words));
+  renderList();
+  $('#reader').innerHTML=`
+    <button class="bigbtn np-back" onclick="openArticle('${esc(String(lead.id))}')">← 학습 모드로 돌아가기</button>
+    <div class="np-masthead">
+      <div style="font-size:10px;letter-spacing:2px;color:var(--faint);text-transform:uppercase">English Study Edition</div>
+      <div class="np-title">The Wall Street Journal</div>
+      <div class="np-sub"><span>${esc(issueLabel(date))}</span><span>FRONT PAGE · 1면</span><span>${arr.length} Articles</span></div>
+    </div>
+    <div class="np-frontgrid">
+      <div class="np-lead">
+        <span class="np-badge">LEAD STORY · 머리기사</span>
+        <h2 onclick="openArticle('${esc(String(lead.id))}')">${esc(lead.headline)}</h2>
+        ${lead.byline?`<div class="np-byl">${esc(lead.byline)}</div>`:''}
+        <div class="np-ex">${npExcerpt(lead.body,560)}
+          <a onclick="openArticle('${esc(String(lead.id))}')" style="cursor:pointer;font-weight:700"> 계속 읽기 →</a></div>
+      </div>
+      <div class="np-side">${frontOthers.length?frontOthers.map(a=>npItem(a,true)).join(''):'<p class="emptymini">1면 기사가 하나뿐입니다.</p>'}</div>
+    </div>
+    ${rest.length?`<div class="np-section-h">안쪽 지면 · Inside the Paper</div>
+      <div class="np-inside">${rest.map(a=>npItem(a,true)).join('')}</div>`:''}
+    <p class="readtip">💡 아무 기사나 탭하면 <b>학습 모드</b>(단어 뜻·발음·번역)로 열립니다.</p>`;
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 /* ---------------- Article reader ---------------- */
@@ -499,7 +604,7 @@ function renderSentence(s,si,a){
   return `<span class="sent" data-si="${si}">${inner}</span>`;
 }
 function openArticle(id){
-  const a=ART.find(x=>x.id===id); if(!a) return;
+  const a=ART.find(x=>String(x.id)===String(id)); if(!a) return; id=a.id;
   curArt=a; stopSpeak(); hidePop(); closeDrawer();
   const r=store.read; if(!r.includes(id)){ r.push(id); store.read=r;
     logActivity('read','📖','읽기 시작: '+a.headline); scheduleSync(); }
@@ -523,6 +628,7 @@ function openArticle(id){
       <button id="btnVocab" onclick="toggleVocabHL()" class="on">✨ 핵심어휘</button>
       <button id="btnTrans" onclick="toggleTrans()">🇰🇷 문장번역</button>
       <span class="sep"></span>
+      <button onclick="openPaperView('${esc(a.date||ISSUE_DATE)}')" title="이 날짜를 신문 지면처럼 보기">🗞️ 신문형</button>
       <div class="grp">글자<button onclick="setFont(-1)" style="padding:6px 9px">A−</button><button onclick="setFont(1)" style="padding:6px 9px">A＋</button></div>
     </div>
     <div class="body showvocab" id="artbody">${paras.join('')}</div>
@@ -791,6 +897,10 @@ function answerQuiz(btn,correct){
 /* ---------------- Import: PDF & paste ---------------- */
 let paperSeq=0;
 function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function parseDateFromName(name){
+  const m=/(20\d{2})[-_.]?(0[1-9]|1[0-2])[-_.]?(0[1-9]|[12]\d|3[01])/.exec(name||'');
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : todayStr();
+}
 function mkArticle(raw, paperId, idx){
   const body=(raw.body||'').replace(/\s+/g,' ').trim();
   const words=body.split(' ').length;
@@ -805,6 +915,7 @@ function loadPaperIntoART(paper){
   if(!SECTIONS.includes(paper.section||'내가 넣은 신문')) SECTIONS.push(paper.section||'내가 넣은 신문');
   paper.articles.forEach((raw,idx)=>{
     const a=mkArticle({...raw, section:paper.section}, paper.id, idx);
+    a.date = paper.date || todayStr();
     if(!ART.some(x=>x.id===a.id)) ART.unshift(a);
   });
 }
@@ -832,8 +943,12 @@ function addArticle(headline, body, section='내가 추가한 기사', byline=''
 function addPasted(){
   const b=$('#pasteBody').value.trim();
   if(b.length<40){ toast('본문이 너무 짧습니다'); return; }
-  addArticle($('#pasteTitle').value.trim()||'붙여넣은 기사', b);
-  $('#pasteBody').value=''; $('#pasteTitle').value='';
+  const title=$('#pasteTitle').value.trim()||'붙여넣은 기사';
+  const date=($('#pasteDate').value)||todayStr();
+  registerPaper({ title, section:'내가 추가한 기사', date,
+    articles:[{ headline:title, byline:'', body:b, page:null }] }, {open:true});
+  toast('✓ 기사를 추가했습니다');
+  $('#pasteBody').value=''; $('#pasteTitle').value=''; $('#pasteDate').value='';
 }
 const drop=$('#drop'), pdfInput=$('#pdfInput');
 drop.onclick=()=>pdfInput.click();
@@ -872,7 +987,7 @@ async function handlePDF(file){
     }
     if(!raws.length){ status.textContent='⚠️ 기사를 찾지 못했습니다. 텍스트 붙여넣기를 이용해 보세요.'; return; }
     const title=file.name.replace(/\.pdf$/i,'');
-    registerPaper({ title, section:'내가 넣은 신문', articles:raws });
+    registerPaper({ title, section:'내가 넣은 신문', date:parseDateFromName(file.name), articles:raws });
     status.innerHTML=`✅ <b>${raws.length}개</b> 기사를 추가했습니다! 상단 <b>📰 리딩</b>에서 확인하세요.`;
     toast(`✅ ${raws.length}개 기사 추가 완료`);
   }catch(e){ status.textContent='⚠️ PDF 처리 오류: '+e.message; }
