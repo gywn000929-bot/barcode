@@ -161,6 +161,14 @@ video{width:100%;border-radius:12px;background:#000}
   <div class="split"><button class="btn" id="loSave">추가</button><button class="btn ghost" id="loCancel">취소</button></div>
 </div></dialog>
 
+<dialog id="mixbox"><div class="inn"><h3>혼합 / 낱개 박스</h3>
+  <p class="small muted" id="mbInfo" style="margin:2px 0 10px;word-break:break-all"></p>
+  <div id="mbRows"></div>
+  <button class="btn ghost sm" id="mbAdd" style="margin-top:6px">＋ 품목 추가</button>
+  <div id="mbSum" class="small" style="margin:10px 0"></div>
+  <div class="split"><button class="btn" id="mbSave">저장</button><button class="btn ghost" id="mbCancel">취소</button></div>
+</div></dialog>
+
 <dialog id="importDlg"><div class="inn"><h3>목록 / CSV 가져오기</h3>
   <p class="small muted" style="margin:2px 0 8px">QRbot 등으로 찍은 바코드를 한 줄에 하나씩 붙여넣거나 CSV 파일을 선택. <b>1줄 = 1박스</b>.</p>
   <label>파렛트</label><input id="impPal" type="text" inputmode="numeric" style="margin:6px 0 10px">
@@ -204,6 +212,8 @@ function parseKET(raw){
   const s=String(raw).toUpperCase().replace(/\s/g,'');
   let m=s.match(/P([0-9A-Z\-]+?)Q(\d{3,7})(?:S([0-9A-Z\-]+))?/);           // ① P/Q/S 계열
   if(m) return {part:m[1], qty:parseInt(m[2])||0, seal:m[3]||'', v:'PQS'};
+  let mb=s.match(/^C([0-9A-Z\-]+?)Q(\d{3,9})S([0-9A-Z\-]+)$/);             // ⑥ 대아 혼합/낱개 박스: C<거래처코드>Q<총수량>S<LOT> — 제품코드는 라벨 표에만, 바코드엔 없음
+  if(mb) return {box:true, part:mb[1], setCode:mb[1], total:parseInt(mb[2])||0, qty:0, seal:mb[3], v:'MIXBOX'};
   const t=String(raw).trim();
   if(t.indexOf('@')>0){                                                        // ② 기성전선 (@ 구분)
     const f=t.split('@').map(x=>x.trim()).filter(x=>x!=='');
@@ -299,6 +309,8 @@ function logFeed(pal,name,delta){ S.feed.unshift({t:new Date().toLocaleTimeStrin
 
 function onScan(raw){
   raw=String(raw||'').trim(); if(!raw) return;
+  const kp0=parseKET(raw);
+  if(kp0 && kp0.box){ mixBoxDialog(raw, kp0); return; }     // 혼합/낱개 박스는 전용 입력창으로
   const cands=matchPart(raw);
   if(cands.length===1){ commit(cands[0].name, cands[0].per, raw); }
   else if(cands.length>1){ pickDialog(cands, raw); }
@@ -363,6 +375,43 @@ $('#addLooseBtn').onclick=()=>{ $('#loPal').textContent=S.pal+'번'; $('#loName'
 $('#loSave').onclick=()=>{ const n=$('#loName').value.trim(); const q=parseInt($('#loQty').value)||0;
   if(!n||!q){toast('품명/수량 확인','warn');return;} addLoose(S.pal,n,q); logFeed(S.pal,n,'낱개+'+q); save(); loose.close(); toast('낱개 +'+fmt(q)+' · '+n); render(); };
 $('#loCancel').onclick=()=>loose.close();
+
+// ---- 혼합/낱개 박스 (C…Q…S… : 바코드엔 총수량·LOT만, 제품코드는 라벨 표에만) ----
+const mixbox=$('#mixbox'); let mbCtx=null;
+function resolveCode(code){                      // 입력한 제품코드 → 마스터 품명(확실할 때만), 애매하면 코드 그대로
+  const cands=matchPart(code);
+  if(cands.length===1) return cands[0].name;
+  const t=normalize(code);
+  if(t.length>=5){ const seen=new Set(),hits=[]; for(const [n,,c] of MASTER){ const cc=c||normalize(n); if(cc.indexOf(t)>=0 && !seen.has(n)){ seen.add(n); hits.push(n); } } if(hits.length===1) return hits[0]; }
+  return code;
+}
+function mbUpdateSum(){ let sum=0; $$('#mbRows .mbQty').forEach(q=>sum+=parseInt(q.value)||0); const t=mbCtx?mbCtx.total:0; const ok=sum===t;
+  $('#mbSum').innerHTML='입력 합계 <b>'+fmt(sum)+'</b> / 바코드 총 <b>'+fmt(t)+'</b> '+(sum?(ok?'<span style="color:var(--ok)">✓ 일치</span>':'<span style="color:var(--warn)">≠ 확인</span>'):''); }
+function mbAddRow(code,qty){ const d=document.createElement('div'); d.className='mbRow row'; d.style.cssText='gap:6px;margin-bottom:6px';
+  d.innerHTML='<input class="mbCode" type="text" list="masterList" placeholder="제품코드/품명" autocomplete="off" style="flex:2;min-width:0">'+
+              '<input class="mbQty" type="number" inputmode="numeric" placeholder="적재량" style="flex:1;min-width:0">'+
+              '<button class="del mbDel" type="button" title="행 삭제">×</button>';
+  if(code)d.querySelector('.mbCode').value=code; if(qty)d.querySelector('.mbQty').value=qty;
+  d.querySelector('.mbQty').addEventListener('input',mbUpdateSum);
+  d.querySelector('.mbDel').onclick=()=>{ d.remove(); mbUpdateSum(); };
+  $('#mbRows').appendChild(d); return d; }
+function mixBoxDialog(raw,kp){ const bid=boxId(raw);
+  if(bid && S.seen[bid]){ const sv=S.seen[bid]||{}; buzz(); toast('⚠️ 이미 처리한 박스 ['+(sv.pal||'?')+'번] — 중복 무시','warn',3000); keepFocus(); return; }
+  mbCtx={pal:S.pal,total:kp.total,seal:kp.seal,bid};
+  $('#mbInfo').innerHTML='파렛트 <b>'+esc(S.pal)+'번</b> · 바코드 총수량 <b>'+fmt(kp.total)+'</b> · LOT '+esc(kp.seal)+'<br>라벨의 <b>제품코드 + 적재량</b>을 줄마다 입력하세요.';
+  $('#mbRows').innerHTML=''; mbAddRow(); mbUpdateSum();
+  mixbox.showModal(); setTimeout(()=>{ const c=$('#mbRows .mbCode'); if(c)c.focus(); },60); }
+$('#mbAdd').onclick=()=>{ const d=mbAddRow(); const c=d.querySelector('.mbCode'); if(c)c.focus(); };
+$('#mbCancel').onclick=()=>{ mixbox.close(); mbCtx=null; keepFocus(); };
+$('#mbSave').onclick=()=>{ if(!mbCtx)return;
+  const entries=[]; $$('#mbRows .mbRow').forEach(r=>{ const code=r.querySelector('.mbCode').value.trim(); const qty=parseInt(r.querySelector('.mbQty').value)||0; if(code&&qty>0) entries.push({code,qty}); });
+  if(!entries.length){ toast('제품코드/적재량을 입력해줘','warn'); return; }
+  let n=0; entries.forEach(e=>{ const name=resolveCode(e.code); addLoose(mbCtx.pal,name,e.qty); if(name!==e.code)S.learned[codeKey(e.code)]=name; logFeed(mbCtx.pal,name,'낱개+'+e.qty); n++; });
+  if(mbCtx.bid){ S.seen[mbCtx.bid]={pal:mbCtx.pal,name:'혼합박스'}; if(S.feed[0])S.feed[0].bid=mbCtx.bid; }
+  pruneSeen(); save(); render(); mixbox.close();
+  const tot=entries.reduce((s,e)=>s+e.qty,0);
+  toast('낱개 '+n+'품목 · 합계 '+fmt(tot)+(tot!==mbCtx.total?' (⚠️ 바코드 '+fmt(mbCtx.total)+'과 다름)':'')+' · ['+mbCtx.pal+'번]', tot!==mbCtx.total?'warn':null, 2800);
+  ding(); mbCtx=null; keepFocus(); };
 
 const imp=$('#importDlg');
 $('#importBtn').onclick=()=>{ $('#impPal').value=S.pal; $('#impText').value=''; imp.showModal(); };
