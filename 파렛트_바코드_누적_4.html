@@ -391,8 +391,14 @@ function mbAddRow(code,qty){ const d=document.createElement('div'); d.className=
   d.innerHTML='<input class="mbCode" type="text" list="masterList" placeholder="제품코드/품명" autocomplete="off" style="flex:2;min-width:0">'+
               '<input class="mbQty" type="number" inputmode="numeric" placeholder="적재량" style="flex:1;min-width:0">'+
               '<button class="del mbDel" type="button" title="행 삭제">×</button>';
-  if(code)d.querySelector('.mbCode').value=code; if(qty)d.querySelector('.mbQty').value=qty;
-  d.querySelector('.mbQty').addEventListener('input',mbUpdateSum);
+  const codeEl=d.querySelector('.mbCode'), qtyEl=d.querySelector('.mbQty');
+  if(code)codeEl.value=code; if(qty)qtyEl.value=qty;
+  qtyEl.addEventListener('input',mbUpdateSum);
+  codeEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); qtyEl.focus(); } });   // 코드칸 Enter → 적재량칸
+  qtyEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault();                          // 적재량칸 Enter → 다음 줄(마지막이면 새 줄)
+    const rows=$$('#mbRows .mbRow');
+    if(rows[rows.length-1]===d){ mbAddRow().querySelector('.mbCode').focus(); }
+    else { const nx=d.nextElementSibling&&d.nextElementSibling.querySelector('.mbCode'); if(nx)nx.focus(); } } });
   d.querySelector('.mbDel').onclick=()=>{ d.remove(); mbUpdateSum(); };
   $('#mbRows').appendChild(d); return d; }
 function mixBoxDialog(raw,kp){ const bid=boxId(raw);
