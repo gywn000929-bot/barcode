@@ -361,6 +361,16 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
     </div>
   </div>
 
+  <div class="synccfg" style="margin-top:14px">
+    <label>📱 다른 내 기기(폰) 자동 연결 <span class="hint2">— 연결된 뒤 링크를 만들어, 다른 폰에서 그 링크만 열면 토큰 입력 없이 자동 연결됩니다</span></label>
+    <div class="toolrow" style="margin:8px 0 0">
+      <button class="bigbtn primary" onclick="makeSyncLink()">🔗 연결 링크 만들기</button>
+      <button class="bigbtn" onclick="copySyncLink()" id="copyLinkBtn" style="display:none">📋 링크 복사</button>
+    </div>
+    <input class="field-title" id="syncLink" readonly placeholder="연결한 뒤 ‘연결 링크 만들기’를 누르세요" style="max-width:100%;margin-top:10px">
+    <p class="hint2" style="margin-top:6px">⚠️ 이 링크에는 토큰이 들어 있습니다. <b>내 기기에만</b> (예: 나에게 카톡 전송) 보내세요. 공개하지 마세요.</p>
+  </div>
+
   <details class="howto">
     <summary>🔑 토큰 만드는 법 (처음 한 번, 약 2분)</summary>
     <ol>
@@ -1059,14 +1069,46 @@ function disconnectSync(){
 function pullNow(){ if(!syncCfg){ toast('먼저 연결하세요'); return; } pullState(); }
 function pushNow(){ if(!syncCfg){ toast('먼저 연결하세요'); return; } pushState(); }
 
+/* --------------- One-tap device link --------------- */
+function makeSyncLink(){
+  if(!syncCfg){ toast('먼저 연결하세요'); return; }
+  const token=b64enc(JSON.stringify(syncCfg));
+  const link=location.href.split('#')[0]+'#connect='+token;
+  const f=$('#syncLink'); f.value=link; $('#copyLinkBtn').style.display='';
+  copySyncLink();
+}
+function copySyncLink(){
+  const f=$('#syncLink'); if(!f.value){ makeSyncLink(); return; }
+  f.select(); f.setSelectionRange(0,99999);
+  (navigator.clipboard?navigator.clipboard.writeText(f.value):Promise.reject())
+    .then(()=>toast('📋 링크를 복사했습니다 — 다른 폰에서 열면 자동 연결됩니다'))
+    .catch(()=>{ try{document.execCommand('copy');toast('📋 링크를 복사했습니다');}catch(e){toast('링크를 길게 눌러 복사하세요');} });
+}
+function applyConnectHash(){
+  const m=(location.hash||'').match(/[#&]connect=([^&]+)/);
+  if(!m) return false;
+  try{
+    const cfg=JSON.parse(b64dec(decodeURIComponent(m[1])));
+    if(cfg && cfg.repo && cfg.token){
+      syncCfg=cfg; store.gh=cfg; uploadedPapers=new Set();
+      history.replaceState(null,'',location.pathname+location.search); // strip token from URL
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
 window.addEventListener('visibilitychange',()=>{ if(!document.hidden && syncCfg && navigator.onLine) pullState(true); });
 
 /* ---------------- boot ---------------- */
+const fromLink=applyConnectHash();   // one-tap link on a new device
 store.papers.forEach(loadPaperIntoART);
 renderSectFilter(); renderList(); updateVCount();
 if(ART.length) openArticle(ART[0].id);
-if(syncCfg){ setSyncStatus('busy','⏳ 동기화 중…'); pullState().then(()=>pushState()); startPoll();
-  $('#syncdot').className='syncdot on'; }
+if(syncCfg){ setSyncStatus('busy','⏳ 동기화 중…'); $('#syncdot').className='syncdot on';
+  pullState().then(()=>pushState()); startPoll();
+  if(fromLink){ toast('📱 이 기기가 연결되었습니다'); logActivity('sync','📱','새 기기 연결됨'); showView('sync'); }
+}
 </script>
 </body>
 </html>
