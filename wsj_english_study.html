@@ -192,6 +192,32 @@ textarea:focus{border-color:var(--accent)}
   background:var(--surface);color:var(--ink);font-size:14px;font-family:var(--sans);margin-bottom:10px;outline:none}
 h3{font-family:var(--serif);font-weight:700;margin:26px 0 10px}
 
+/* ---------- Sync ---------- */
+.syncdot{width:7px;height:7px;border-radius:50%;background:var(--faint);display:inline-block;margin-left:2px}
+.syncdot.on{background:var(--good)}
+.syncdot.busy{background:#e0a815;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.syncbanner{border-radius:12px;padding:12px 16px;font-size:14px;margin:6px 0 18px;font-weight:500;
+  border:1px solid var(--line);background:var(--surface)}
+.syncbanner.on{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.syncbanner.off{color:var(--sub)}
+.syncbanner.err{background:#fdecea;color:#b23a2b;border-color:transparent}
+html[data-theme="dark"] .syncbanner.err{background:#3a201d;color:#ff9b8f}
+.synccfg{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.synccfg label{display:block;font-size:12.5px;font-weight:600;color:var(--sub);margin:12px 0 5px}
+.synccfg label:first-child{margin-top:0}
+.hint2{color:var(--faint);font-weight:400;font-size:11.5px}
+.cfgrow{display:flex;gap:12px}
+.howto{margin:16px 0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:2px 16px}
+.howto summary{cursor:pointer;font-weight:600;font-size:13.5px;padding:12px 0}
+.howto ol{font-size:13px;color:var(--sub);line-height:1.9;padding-left:20px}
+.howto code{background:var(--line2);border-radius:4px;padding:1px 5px;font-size:12px}
+.log-item{display:flex;gap:10px;align-items:baseline;padding:9px 12px;border:1px solid var(--line);
+  border-radius:10px;margin-bottom:6px;background:var(--surface);font-size:13.5px}
+.log-item .li-t{color:var(--faint);font-size:11.5px;white-space:nowrap;flex:none;min-width:96px}
+.log-item .li-i{flex:none}
+@media(max-width:520px){ .cfgrow{flex-direction:column;gap:0} .log-item .li-t{min-width:auto} }
+
 .hide{display:none!important}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--ink);
   color:var(--bg);padding:12px 20px;border-radius:24px;font-size:14px;z-index:300;box-shadow:var(--shadow);
@@ -241,6 +267,7 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
     <button id="navRead" class="active" onclick="showView('read')">📰<span class="label">리딩</span></button>
     <button id="navVocab" onclick="showView('vocab')">📒<span class="label">단어장</span> <span class="badge" id="vcount">0</span></button>
     <button id="navImport" class="hide-xs" onclick="showView('import')">➕<span class="label">신문 넣기</span></button>
+    <button id="navSync" onclick="showView('sync')">☁️<span class="label">동기화</span><span class="syncdot" id="syncdot"></span></button>
     <button class="ghost" id="themeBtn" onclick="toggleTheme()" aria-label="테마">🌙</button>
   </nav>
 </header>
@@ -308,6 +335,48 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
   </div>
 </div></main></div>
 
+<!-- ============ SYNC VIEW ============ -->
+<div id="view-sync" class="hide"><main><div class="panel">
+  <h2>☁️ 기기 간 동기화</h2>
+  <p class="lead">내 GitHub 저장소에 학습 데이터를 저장하면 <b>모든 컴퓨터에서 연동</b>되고, 변경마다 <b>커밋 기록</b>이 남습니다.</p>
+
+  <div id="syncStatus" class="syncbanner off">🔌 아직 연결되지 않았습니다.</div>
+
+  <div class="synccfg">
+    <label>GitHub 저장소 <span class="hint2">(owner/repo)</span></label>
+    <input class="field-title" id="ghRepo" placeholder="예: gywn000929-bot/WSJ" style="max-width:100%">
+    <label>액세스 토큰 <span class="hint2">(Personal Access Token · 이 브라우저에만 저장됩니다)</span></label>
+    <input class="field-title" id="ghToken" type="password" placeholder="ghp_… 또는 github_pat_…" style="max-width:100%">
+    <div class="cfgrow">
+      <div style="flex:1"><label>브랜치</label>
+        <input class="field-title" id="ghBranch" placeholder="main" style="max-width:100%"></div>
+      <div style="flex:1"><label>저장 폴더</label>
+        <input class="field-title" id="ghPath" placeholder="wsj-study" style="max-width:100%"></div>
+    </div>
+    <div class="toolrow" style="margin-top:6px">
+      <button class="bigbtn primary" onclick="connectSync()">🔗 연결하고 동기화</button>
+      <button class="bigbtn" onclick="pullNow()">⬇️ 지금 불러오기</button>
+      <button class="bigbtn" onclick="pushNow()">⬆️ 지금 올리기</button>
+      <button class="bigbtn" onclick="disconnectSync()">연결 해제</button>
+    </div>
+  </div>
+
+  <details class="howto">
+    <summary>🔑 토큰 만드는 법 (처음 한 번, 약 2분)</summary>
+    <ol>
+      <li>GitHub 로그인 → <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Fine-grained token 만들기</a> 열기</li>
+      <li>Token name 아무거나 · Expiration 원하는 기간</li>
+      <li><b>Repository access</b> → “Only select repositories” → 이 학습용 저장소 선택</li>
+      <li><b>Permissions</b> → Repository permissions → <b>Contents</b> 를 <b>Read and write</b> 로</li>
+      <li>Generate token → 나온 토큰(<code>github_pat_…</code>)을 위 “액세스 토큰”에 붙여넣기</li>
+    </ol>
+    <p class="hint2">저장소는 <b>비공개(private)</b>를 권장합니다. 토큰은 저장소나 HTML에 절대 기록되지 않고, 이 브라우저 안에만 보관됩니다. 다른 사람 컴퓨터에서는 각자 토큰을 넣어야 합니다.</p>
+  </details>
+
+  <h3>📜 학습 기록</h3>
+  <div id="activityLog"><p class="hint2">아직 기록이 없습니다.</p></div>
+</div></main></div>
+
 <div id="pop"></div>
 <div id="toast" class="toast"></div>
 
@@ -326,7 +395,13 @@ const store = {
   get read(){ try{return JSON.parse(localStorage.getItem('wsj_read')||'[]')}catch(e){return []} },
   set read(v){ localStorage.setItem('wsj_read', JSON.stringify(v)) },
   get quiz(){ return localStorage.getItem('wsj_quiz')||'0' },
-  set quiz(v){ localStorage.setItem('wsj_quiz', v) }
+  set quiz(v){ localStorage.setItem('wsj_quiz', v) },
+  get papers(){ try{return JSON.parse(localStorage.getItem('wsj_papers')||'[]')}catch(e){return []} },
+  set papers(v){ localStorage.setItem('wsj_papers', JSON.stringify(v)) },
+  get activity(){ try{return JSON.parse(localStorage.getItem('wsj_activity')||'[]')}catch(e){return []} },
+  set activity(v){ localStorage.setItem('wsj_activity', JSON.stringify(v)) },
+  get gh(){ try{return JSON.parse(localStorage.getItem('wsj_gh')||'null')}catch(e){return null} },
+  set gh(v){ v?localStorage.setItem('wsj_gh', JSON.stringify(v)):localStorage.removeItem('wsj_gh') }
 };
 
 let curFilter='ALL', curArt=null, fontSize=null;
@@ -339,11 +414,12 @@ function closeDrawer(){ document.body.classList.remove('drawer'); }
 
 /* ---------------- View switching ---------------- */
 function showView(v){
-  ['read','vocab','import'].forEach(x=>{
+  ['read','vocab','import','sync'].forEach(x=>{
     $('#view-'+x).classList.toggle('hide', x!==v);
     $('#nav'+x[0].toUpperCase()+x.slice(1)).classList.toggle('active', x===v);
   });
   if(v==='vocab') renderVocab();
+  if(v==='sync') renderSync();
   stopSpeak(); hidePop(); closeDrawer();
 }
 function toggleTheme(){
@@ -404,7 +480,8 @@ function renderSentence(s,si,a){
 function openArticle(id){
   const a=ART.find(x=>x.id===id); if(!a) return;
   curArt=a; stopSpeak(); hidePop(); closeDrawer();
-  const r=store.read; if(!r.includes(id)){ r.push(id); store.read=r; }
+  const r=store.read; if(!r.includes(id)){ r.push(id); store.read=r;
+    logActivity('read','📖','읽기 시작: '+a.headline); scheduleSync(); }
   renderList();
   const sents=splitSentences(a.body);
   let paras=[], si=0;
@@ -572,13 +649,14 @@ function isSaved(w){ return !!store.vocab[w.toLowerCase()]; }
 function saveWord(word){
   word=word.toLowerCase();
   const v=store.vocab;
-  if(v[word]){ delete v[word]; store.vocab=v; toast('단어장에서 제거했습니다'); }
+  if(v[word]){ delete v[word]; store.vocab=v; toast('단어장에서 제거했습니다'); scheduleSync(); }
   else{
     v[word]={ word, ko:'', en:'', phon:'', src:curArt?curArt.headline:'', ts:Date.now() };
     store.vocab=v;
-    translateKO(word).then(t=>{ const vv=store.vocab; if(vv[word]){ vv[word].ko=t||''; store.vocab=vv; } });
-    lookupDict(word).then(d=>{ const vv=store.vocab; if(vv[word]&&d){ vv[word].en=d.firstDef; vv[word].phon=d.phon; store.vocab=vv; } });
-    toast('✓ 단어장에 저장했습니다');
+    logActivity('word','📝','단어 저장: '+word);
+    translateKO(word).then(t=>{ const vv=store.vocab; if(vv[word]){ vv[word].ko=t||''; store.vocab=vv; scheduleSync(); } });
+    lookupDict(word).then(d=>{ const vv=store.vocab; if(vv[word]&&d){ vv[word].en=d.firstDef; vv[word].phon=d.phon; store.vocab=vv; scheduleSync(); } });
+    toast('✓ 단어장에 저장했습니다'); scheduleSync();
   }
   updateVCount();
   const btn=$('#popsave'); if(btn){ const s=isSaved(word);
@@ -609,8 +687,8 @@ function renderVocab(){
       ${w.src?`<div class="src">📰 ${esc(w.src)}</div>`:''}
     </div>`).join('');
 }
-function delWord(w){ const v=store.vocab; delete v[w.toLowerCase()]; store.vocab=v; updateVCount(); renderVocab(); }
-function clearVocab(){ if(confirm('저장한 모든 단어를 삭제할까요?')){ store.vocab={}; updateVCount(); renderVocab(); } }
+function delWord(w){ const v=store.vocab; delete v[w.toLowerCase()]; store.vocab=v; updateVCount(); renderVocab(); scheduleSync(); }
+function clearVocab(){ if(confirm('저장한 모든 단어를 삭제할까요?')){ store.vocab={}; updateVCount(); renderVocab(); scheduleSync(); } }
 function exportVocab(){
   const blob=new Blob([JSON.stringify(Object.values(store.vocab),null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
@@ -690,17 +768,44 @@ function answerQuiz(btn,correct){
 }
 
 /* ---------------- Import: PDF & paste ---------------- */
-let dynId=10000;
-function addArticle(headline, body, section='내가 추가한 기사', byline=''){
-  body=body.replace(/\s+/g,' ').trim();
+let paperSeq=0;
+function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function mkArticle(raw, paperId, idx){
+  const body=(raw.body||'').replace(/\s+/g,' ').trim();
   const words=body.split(' ').length;
-  const a={id:dynId++, section, page:null, headline:headline||'제목 없음', byline,
-    body, words, minutes:Math.max(1,Math.round(words/200)), vocab:[], vocabSet:new Set()};
-  const cand=[...new Set((body.match(/[a-z]{8,}/g)||[]))].slice(0,14);
-  a.vocab=cand; a.vocabSet=new Set(cand);
-  ART.unshift(a);
-  if(!SECTIONS.includes(section)) SECTIONS.push(section);
-  renderSectFilter(); showView('read'); openArticle(a.id);
+  const vocab=raw.vocab || [...new Set((body.match(/[a-z]{8,}/g)||[]))].slice(0,14);
+  const a={ id:paperId+'_'+idx, section:raw.section||'내가 넣은 신문', page:raw.page||null,
+    headline:raw.headline||'제목 없음', byline:raw.byline||'', body, words,
+    minutes:Math.max(1,Math.round(words/200)), vocab, vocabSet:new Set(vocab.map(w=>w.toLowerCase())) };
+  return a;
+}
+// load a stored paper (from localStorage/remote) into the live ART list
+function loadPaperIntoART(paper){
+  if(!SECTIONS.includes(paper.section||'내가 넣은 신문')) SECTIONS.push(paper.section||'내가 넣은 신문');
+  paper.articles.forEach((raw,idx)=>{
+    const a=mkArticle({...raw, section:paper.section}, paper.id, idx);
+    if(!ART.some(x=>x.id===a.id)) ART.unshift(a);
+  });
+}
+// register a NEW imported paper: persist locally, show, log, sync
+function registerPaper(paper, opts={}){
+  paper.id = paper.id || ('p'+Date.now()+'_'+(paperSeq++));
+  paper.date = paper.date || todayStr();
+  paper.section = paper.section || '내가 넣은 신문';
+  const papers=store.papers;
+  if(papers.some(p=>p.id===paper.id)) return paper;
+  papers.unshift(paper); store.papers=papers;
+  loadPaperIntoART(paper);
+  renderSectFilter(); renderList();
+  logActivity('paper','🗞️',`신문 추가: ${paper.title} (${paper.articles.length}개 기사)`);
+  uploadPaper(paper); scheduleSync();
+  if(opts.open){ showView('read'); openArticle(paper.id+'_0'); }
+  return paper;
+}
+function addArticle(headline, body, section='내가 추가한 기사', byline=''){
+  const paper={ title: headline||'붙여넣은 기사', section,
+    articles:[{ headline:headline||'제목 없음', byline, body, page:null }] };
+  registerPaper(paper, {open:true});
   toast('✓ 기사를 추가했습니다');
 }
 function addPasted(){
@@ -737,18 +842,18 @@ async function handlePDF(file){
     status.textContent='📖 텍스트 추출 중…';
     const buf=await file.arrayBuffer();
     const pdf=await pdfjs.getDocument({data:buf}).promise;
-    let added=0;
+    const raws=[];
     for(let p=1;p<=pdf.numPages;p++){
-      status.textContent=`📖 ${p}/${pdf.numPages} 페이지 분석 중… (기사 ${added}개)`;
+      status.textContent=`📖 ${p}/${pdf.numPages} 페이지 분석 중… (기사 ${raws.length}개)`;
       const page=await pdf.getPage(p);
       const tc=await page.getTextContent();
-      const arts=extractArticlesFromPage(tc.items, file.name, p);
-      arts.forEach(a=>{ ART.unshift(a); added++; });
+      extractArticlesFromPage(tc.items, file.name, p).forEach(a=>raws.push(a));
     }
-    if(!SECTIONS.includes('내가 넣은 신문')) SECTIONS.push('내가 넣은 신문');
-    renderSectFilter(); renderList();
-    status.innerHTML=`✅ <b>${added}개</b> 기사를 추가했습니다! 상단 <b>📰 리딩</b>에서 확인하세요.`;
-    toast(`✅ ${added}개 기사 추가 완료`);
+    if(!raws.length){ status.textContent='⚠️ 기사를 찾지 못했습니다. 텍스트 붙여넣기를 이용해 보세요.'; return; }
+    const title=file.name.replace(/\.pdf$/i,'');
+    registerPaper({ title, section:'내가 넣은 신문', articles:raws });
+    status.innerHTML=`✅ <b>${raws.length}개</b> 기사를 추가했습니다! 상단 <b>📰 리딩</b>에서 확인하세요.`;
+    toast(`✅ ${raws.length}개 기사 추가 완료`);
   }catch(e){ status.textContent='⚠️ PDF 처리 오류: '+e.message; }
 }
 function extractArticlesFromPage(items, fname, pno){
@@ -765,12 +870,8 @@ function extractArticlesFromPage(items, fname, pno){
   text=text.replace(/-\s+/g,'').replace(/\s+/g,' ').trim();
   if(text.split(' ').length<120) return out;
   const headline=heads.find(h=>/^[A-Z]/.test(h)&&h.split(' ').length>=3)||(`${fname} p.${pno}`);
-  const a={id:dynId++, section:'내가 넣은 신문', page:pno, headline, byline:'', body:text,
-    words:text.split(' ').length, minutes:Math.max(1,Math.round(text.split(' ').length/200)),
-    vocab:[], vocabSet:new Set()};
-  const cand=[...new Set((text.match(/[a-z]{8,}/g)||[]))].slice(0,14);
-  a.vocab=cand; a.vocabSet=new Set(cand);
-  out.push(a); return out;
+  out.push({ section:'내가 넣은 신문', page:pno, headline, byline:'', body:text });
+  return out;
 }
 
 /* ---------------- utils ---------------- */
@@ -780,9 +881,192 @@ let toastT;
 function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show');
   clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200); }
 
+/* ================================================================
+ *  Activity log (학습 기록)
+ * ================================================================ */
+function logActivity(type, icon, text){
+  const list=store.activity;
+  list.unshift({ t:Date.now(), type, icon, text });
+  store.activity = list.slice(0,500);
+  if(!$('#view-sync').classList.contains('hide')) renderActivity();
+}
+function fmtTime(ts){
+  const d=new Date(ts), n=new Date();
+  const p=x=>String(x).padStart(2,'0');
+  const sameDay=d.toDateString()===n.toDateString();
+  return sameDay ? `오늘 ${p(d.getHours())}:${p(d.getMinutes())}`
+    : `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function renderActivity(){
+  const box=$('#activityLog'); const acts=store.activity;
+  if(!acts.length){ box.innerHTML='<p class="hint2">아직 기록이 없습니다.</p>'; return; }
+  box.innerHTML=acts.slice(0,120).map(a=>`<div class="log-item">
+    <span class="li-t">${esc(fmtTime(a.t))}</span><span class="li-i">${a.icon||'•'}</span>
+    <span>${esc(a.text)}</span></div>`).join('');
+}
+
+/* ================================================================
+ *  GitHub sync engine
+ * ================================================================ */
+let syncCfg=store.gh, syncTimer=null, pollTimer=null, uploadedPapers=new Set(), syncing=false;
+
+function b64enc(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64dec(b){ return decodeURIComponent(escape(atob((b||'').replace(/\s/g,'')))); }
+function ghUrl(cfg, filepath){
+  return `https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}/${filepath}`;
+}
+function ghHeaders(cfg){
+  return { 'Authorization':'Bearer '+cfg.token, 'Accept':'application/vnd.github+json',
+           'X-GitHub-Api-Version':'2022-11-28' };
+}
+async function ghGetFile(cfg, filepath){
+  const res=await fetch(ghUrl(cfg,filepath)+'?ref='+encodeURIComponent(cfg.branch)+'&t='+Date.now(),
+    { headers:ghHeaders(cfg), cache:'no-store' });
+  if(res.status===404) return { obj:null, sha:null };
+  if(!res.ok) throw new Error('GitHub '+res.status+(res.status===401?' (토큰 확인)':res.status===403?' (권한/한도)':''));
+  const j=await res.json();
+  return { obj: JSON.parse(b64dec(j.content)), sha:j.sha };
+}
+async function ghPutFile(cfg, filepath, obj, sha, message){
+  const body={ message, content:b64enc(JSON.stringify(obj)), branch:cfg.branch };
+  if(sha) body.sha=sha;
+  const res=await fetch(ghUrl(cfg,filepath), { method:'PUT', headers:ghHeaders(cfg), body:JSON.stringify(body) });
+  if(!res.ok){ const t=await res.text(); throw new Error('GitHub '+res.status+' '+t.slice(0,120)); }
+  return (await res.json()).content.sha;
+}
+
+function setSyncStatus(kind, msg){
+  const b=$('#syncStatus'), dot=$('#syncdot');
+  if(b){ b.className='syncbanner '+kind; b.innerHTML=msg; }
+  if(dot){ dot.className='syncdot'+(kind==='on'?' on':kind==='busy'?' busy':''); }
+}
+function localState(){
+  const papers=store.papers.map(p=>({id:p.id,title:p.title,section:p.section,date:p.date,count:p.articles.length}));
+  return { v:1, vocab:store.vocab, read:store.read, quiz:store.quiz, activity:store.activity, papers };
+}
+function mergeState(local, remote){
+  if(!remote) return local;
+  // vocab: keep newer ts
+  const vocab={...remote.vocab};
+  for(const [k,val] of Object.entries(local.vocab||{})){
+    if(!vocab[k] || (val.ts||0)>=(vocab[k].ts||0)) vocab[k]=val;
+  }
+  const read=[...new Set([...(remote.read||[]), ...(local.read||[])])];
+  const quiz=String(Math.max(+(remote.quiz||0), +(local.quiz||0)));
+  const seen=new Set(), activity=[];
+  for(const a of [...(local.activity||[]), ...(remote.activity||[])]){
+    const key=a.t+'|'+a.type+'|'+a.text; if(seen.has(key)) continue; seen.add(key); activity.push(a);
+  }
+  activity.sort((x,y)=>y.t-x.t);
+  const pmap={}; [...(remote.papers||[]), ...(local.papers||[])].forEach(p=>{ pmap[p.id]=p; });
+  return { v:1, vocab, read, quiz, activity:activity.slice(0,500), papers:Object.values(pmap) };
+}
+async function loadRemotePaper(cfg, meta){
+  if(store.papers.some(p=>p.id===meta.id)) { uploadedPapers.add(meta.id); return; }
+  try{
+    const {obj}=await ghGetFile(cfg, 'papers/'+meta.id+'.json');
+    if(obj && obj.articles){
+      const papers=store.papers; papers.push(obj); store.papers=papers;
+      loadPaperIntoART(obj); uploadedPapers.add(meta.id);
+    }
+  }catch(e){ /* skip missing paper */ }
+}
+async function uploadPaper(paper){
+  if(!syncCfg || uploadedPapers.has(paper.id)) return;
+  try{
+    await ghPutFile(syncCfg, 'papers/'+paper.id+'.json', paper, null, 'Add newspaper: '+paper.title);
+    uploadedPapers.add(paper.id);
+  }catch(e){ /* will retry on next state push cycle */ }
+}
+async function pullState(silent){
+  if(!syncCfg) return;
+  if(!silent) setSyncStatus('busy','⏳ 불러오는 중…');
+  try{
+    const {obj:remote}=await ghGetFile(syncCfg, 'state.json');
+    if(remote){
+      // load any papers we don't have yet
+      for(const meta of (remote.papers||[])) await loadRemotePaper(syncCfg, meta);
+      const merged=mergeState(localState(), remote);
+      store.vocab=merged.vocab; store.read=merged.read; store.quiz=merged.quiz; store.activity=merged.activity;
+    }
+    renderSectFilter(); renderList(); updateVCount();
+    if(!$('#view-vocab').classList.contains('hide')) renderVocab();
+    if(!$('#view-sync').classList.contains('hide')) renderActivity();
+    setSyncStatus('on','✅ 연결됨 · '+syncCfg.repo+' <span class="hint2">('+fmtTime(Date.now())+' 동기화)</span>');
+  }catch(e){ setSyncStatus('err','⚠️ '+e.message); }
+}
+async function pushState(){
+  if(!syncCfg || syncing) return;
+  syncing=true;
+  try{
+    setSyncStatus('busy','⏳ 저장 중…');
+    // ensure new papers uploaded first
+    for(const p of store.papers){ if(!uploadedPapers.has(p.id)) await uploadPaper(p); }
+    let attempt=0;
+    while(attempt++<2){
+      const {obj:remote, sha}=await ghGetFile(syncCfg, 'state.json');
+      const merged=mergeState(localState(), remote);
+      store.vocab=merged.vocab; store.read=merged.read; store.quiz=merged.quiz; store.activity=merged.activity;
+      try{
+        await ghPutFile(syncCfg, 'state.json', merged, sha, 'Update study data ('+new Date().toISOString()+')');
+        setSyncStatus('on','✅ 연결됨 · '+syncCfg.repo+' <span class="hint2">('+fmtTime(Date.now())+' 저장됨)</span>');
+        break;
+      }catch(e){ if(attempt>=2 || !/409|422/.test(e.message)) throw e; /* conflict: retry */ }
+    }
+  }catch(e){ setSyncStatus('err','⚠️ '+e.message); }
+  finally{ syncing=false; }
+}
+function scheduleSync(){
+  if(!syncCfg) return;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(pushState, 1500);
+}
+function startPoll(){
+  clearInterval(pollTimer);
+  pollTimer=setInterval(()=>{ if(syncCfg && navigator.onLine && !document.hidden && !syncing) pullState(true); }, 60000);
+}
+
+/* --------------- Sync UI --------------- */
+function renderSync(){
+  const c=store.gh;
+  if(c){ $('#ghRepo').value=c.repo; $('#ghToken').value=c.token; $('#ghBranch').value=c.branch; $('#ghPath').value=c.path; }
+  else{ $('#ghBranch').value=$('#ghBranch').value||'main'; $('#ghPath').value=$('#ghPath').value||'wsj-study'; }
+  if(syncCfg) setSyncStatus('on','✅ 연결됨 · '+syncCfg.repo);
+  else setSyncStatus('off','🔌 아직 연결되지 않았습니다.');
+  renderActivity();
+}
+async function connectSync(){
+  const repo=($('#ghRepo').value||'').trim().replace(/^https?:\/\/github.com\//,'').replace(/\.git$/,'');
+  const token=($('#ghToken').value||'').trim();
+  const branch=($('#ghBranch').value||'main').trim()||'main';
+  const path=($('#ghPath').value||'wsj-study').trim().replace(/^\/|\/$/g,'')||'wsj-study';
+  if(!/^[^/]+\/[^/]+$/.test(repo)){ toast('저장소 형식은 owner/repo 입니다'); return; }
+  if(!token){ toast('액세스 토큰을 입력하세요'); return; }
+  syncCfg={repo,token,branch,path}; store.gh=syncCfg; uploadedPapers=new Set();
+  setSyncStatus('busy','⏳ 연결 확인 중…');
+  await pullState();        // pull remote + merge
+  await pushState();        // push merged (creates files on first run)
+  startPoll();
+  logActivity('sync','🔗','기기 연결: '+repo);
+  toast('☁️ 동기화 연결됨');
+}
+function disconnectSync(){
+  syncCfg=null; store.gh=null; clearInterval(pollTimer); clearTimeout(syncTimer);
+  setSyncStatus('off','🔌 연결을 해제했습니다. (이 브라우저의 데이터는 그대로 유지됩니다)');
+  $('#syncdot').className='syncdot';
+  toast('연결을 해제했습니다');
+}
+function pullNow(){ if(!syncCfg){ toast('먼저 연결하세요'); return; } pullState(); }
+function pushNow(){ if(!syncCfg){ toast('먼저 연결하세요'); return; } pushState(); }
+
+window.addEventListener('visibilitychange',()=>{ if(!document.hidden && syncCfg && navigator.onLine) pullState(true); });
+
 /* ---------------- boot ---------------- */
+store.papers.forEach(loadPaperIntoART);
 renderSectFilter(); renderList(); updateVCount();
 if(ART.length) openArticle(ART[0].id);
+if(syncCfg){ setSyncStatus('busy','⏳ 동기화 중…'); pullState().then(()=>pushState()); startPoll();
+  $('#syncdot').className='syncdot on'; }
 </script>
 </body>
 </html>
