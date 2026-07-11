@@ -716,7 +716,7 @@ function renderList(){
       const d=document.createElement('div');
       d.className='artitem'+(curArt&&String(curArt.id)===String(a.id)?' sel':'');
       d.onclick=()=>openArticle(a.id);
-      d.innerHTML=`<div class="sc">${a.page===1?'<span class="frontbadge">1면</span>':''}${esc(a.section)}${a.page&&a.page!==1?' · p'+a.page:''}</div>
+      d.innerHTML=`<div class="sc">${(a.page===1&&hasEpaper(a.date))?'<span class="frontbadge">1면</span>':''}${esc(a.section)}${a.page?' · p'+a.page+(hasEpaper(a.date)?'':'?'):''}</div>
         <div class="h">${esc(a.headline)}</div>
         <div class="m"><span>⏱ ${a.minutes}분</span><span>· ${a.words}단어</span>
         ${read.includes(a.id)?'<span class="readdot" title="읽음"></span>':''}</div>`;
@@ -737,10 +737,12 @@ function openPaperView(date){
   closeDrawer(); stopSpeak(); hidePop(); curArt=null;
   const arr=ART.filter(a=>(a.date||ISSUE_DATE)===date);
   if(!arr.length){ toast('해당 날짜 기사가 없습니다'); return; }
-  const front=arr.filter(a=>a.page===1);
-  const pool=front.length?front:arr.slice().sort((a,b)=>pageOf(a)-pageOf(b));
+  // 정밀 파싱된 신문만 페이지 번호를 신뢰(1면 판별). 임포트 신문은 길이 기준 주요 기사로.
+  const verified=hasEpaper(date);
+  const front=verified?arr.filter(a=>a.page===1):[];
+  const pool=front.length?front:arr.slice().sort((a,b)=>b.words-a.words);
   const lead=pool.slice().sort((a,b)=>b.words-a.words)[0];
-  const frontOthers=(front.length?front:pool.slice(0,6)).filter(a=>a!==lead).sort((a,b)=>b.words-a.words);
+  const frontOthers=(front.length?front:pool).filter(a=>a!==lead).sort((a,b)=>b.words-a.words).slice(0,verified?99:5);
   const rest=arr.filter(a=>a!==lead && !frontOthers.includes(a)).sort((a,b)=>(pageOf(a)-pageOf(b))||(b.words-a.words));
   renderList();
   $('#reader').innerHTML=`
@@ -748,7 +750,7 @@ function openPaperView(date){
     <div class="np-masthead">
       <div style="font-size:10px;letter-spacing:2px;color:var(--faint);text-transform:uppercase">English Study Edition</div>
       <div class="np-title">The Wall Street Journal</div>
-      <div class="np-sub"><span>${esc(issueLabel(date))}</span><span>FRONT PAGE · 1면</span><span>${arr.length} Articles</span></div>
+      <div class="np-sub"><span>${esc(issueLabel(date))}</span><span>${verified?'FRONT PAGE · 1면':'주요 기사 · TOP STORIES'}</span><span>${arr.length} Articles</span></div>
     </div>
     <div class="np-frontgrid">
       <div class="np-lead">
