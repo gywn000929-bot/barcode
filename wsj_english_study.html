@@ -1415,6 +1415,14 @@ function renderActivity(){
  *  GitHub sync engine
  * ================================================================ */
 let syncCfg=store.gh, syncTimer=null, pollTimer=null, uploadedPapers=new Set(), syncing=false;
+const tombs=new Set();   // 삭제 표시된 신문 id (모든 기기에서 자동 제거·재업로드 금지)
+function purgePaperLocal(pid){
+  let changed=false;
+  for(let i=ART.length-1;i>=0;i--){ if(String(ART[i].id).startsWith(pid+'_')){ ART.splice(i,1); changed=true; } }
+  const before=store.papers.length; store.papers=store.papers.filter(p=>p.id!==pid);
+  if(store.papers.length!==before) changed=true;
+  return changed;
+}
 
 function b64enc(str){ return btoa(unescape(encodeURIComponent(str))); }
 function b64dec(b){ return decodeURIComponent(escape(atob((b||'').replace(/\s/g,'')))); }
@@ -1567,12 +1575,21 @@ async function fbPull(silent){
       const seen=new Set(store.activity.map(a=>a.k||(a.t+'|'+a.text))), acts=store.activity.slice();
       Object.values(d.activity||{}).forEach(a=>{ const key=a.k||(a.t+'|'+a.text); if(!seen.has(key)){ seen.add(key); acts.push(a);} });
       acts.sort((x,y)=>y.t-x.t); store.activity=acts.slice(0,500);
-      // papers
+      // tombstones: 삭제 표시된 신문은 로컬에서 제거하고 다시 올리지 않음
+      let purged=false;
+      for(const id of Object.keys(d.deleted||{})){ tombs.add(id); uploadedPapers.add(id); if(purgePaperLocal(id)) purged=true; }
+      // papers (삭제 표시된 것은 건너뜀)
       for(const [id,paper] of Object.entries(d.papers||{})){
-        if(paper && paper.articles && !store.papers.some(p=>p.id===paper.id)){
+        if(paper && paper.articles && !tombs.has(paper.id) && !store.papers.some(p=>p.id===paper.id)){
           const papers=store.papers; papers.push(paper); store.papers=papers;
           loadPaperIntoART(paper); uploadedPapers.add(paper.id);
         }
+      }
+      if(purged){
+        SECTIONS.length=0; [...new Set(ART.map(a=>a.section))].forEach(s=>SECTIONS.push(s));
+        if(!SECTIONS.includes(curFilter)) curFilter='ALL';
+        if(curArt && !ART.some(a=>String(a.id)===String(curArt.id))){ curArt=null;
+          $('#reader').innerHTML='<div class="empty"><div class="big">📖</div><p>왼쪽에서 기사를 선택하세요.</p></div>'; }
       }
     }
     renderSectFilter(); renderList(); updateVCount();
@@ -1585,7 +1602,7 @@ async function fbPush(){
   if(!fbActive()||fbBusy) return; fbBusy=true;
   try{
     setSyncStatus('busy','⏳ 저장 중…');
-    for(const p of store.papers){ if(!uploadedPapers.has(p.id)){ await fbReq('PUT','papers/'+fbKey(p.id),p); uploadedPapers.add(p.id); } }
+    for(const p of store.papers){ if(!uploadedPapers.has(p.id) && !tombs.has(p.id)){ await fbReq('PUT','papers/'+fbKey(p.id),p); uploadedPapers.add(p.id); } }
     // child-level PATCH → merges per-key, never clobbers other devices' new keys
     if(Object.keys(store.vocab).length) await fbReq('PATCH','vocab', store.vocab);
     const readMap=Object.fromEntries(store.read.map(id=>[fbKey(String(id)),true]));
@@ -1598,7 +1615,7 @@ async function fbPush(){
   finally{ fbBusy=false; }
 }
 async function fbRemoveVocab(word){ if(fbActive()){ try{ await fbReq('PATCH','vocab',{[word]:null}); }catch(e){} } }
-async function fbRemovePaper(id){ if(fbActive()){ try{ await fbReq('DELETE','papers/'+fbKey(id)); }catch(e){} } }
+async function fbRemovePaper(id){ tombs.add(id); if(fbActive()){ try{ await fbReq('PATCH','deleted',{[fbKey(id)]:true}); await fbReq('DELETE','papers/'+fbKey(id)); }catch(e){} } }
 async function fbClearVocab(){ if(fbActive()){ try{ await fbReq('PUT','vocab',{}); }catch(e){} } }
 function connectFirebase(){
   const url=($('#fbUrl').value||'').trim();
