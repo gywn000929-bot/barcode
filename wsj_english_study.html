@@ -1577,7 +1577,8 @@ async function fbPull(silent){
       acts.sort((x,y)=>y.t-x.t); store.activity=acts.slice(0,500);
       // tombstones: 삭제 표시된 신문은 로컬에서 제거하고 다시 올리지 않음
       let purged=false;
-      for(const id of Object.keys(d.deleted||{})){ tombs.add(id); uploadedPapers.add(id); if(purgePaperLocal(id)) purged=true; }
+      for(const id of Object.keys(d.deleted||{})){ tombs.add(id); uploadedPapers.add(id); if(purgePaperLocal(id)) purged=true;
+        if(d.papers && d.papers[id]) fbReq('DELETE','papers/'+fbKey(id)).catch(()=>{}); }  // 되살아난 흔적 자동 정리
       // papers (삭제 표시된 것은 건너뜀)
       for(const [id,paper] of Object.entries(d.papers||{})){
         if(paper && paper.articles && !tombs.has(paper.id) && !store.papers.some(p=>p.id===paper.id)){
