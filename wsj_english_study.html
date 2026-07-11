@@ -14,6 +14,11 @@
   --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Malgun Gothic','Apple SD Gothic Neo',sans-serif;
   --measure:37rem; --fs:20px;
 }
+/* 배경 테마: 기본 :root = 연베이지, white = 화이트, dark = 블랙 */
+html[data-theme="white"]{
+  --bg:#ffffff; --surface:#ffffff; --line:#e8e8ec; --line2:#f3f3f5;
+  --accent-soft:#eaf1f8; --mark:#fdf0bf;
+}
 html[data-theme="dark"]{
   --bg:#0f1216; --surface:#171b21; --ink:#e9e6df; --sub:#a2a8b0; --faint:#767c85;
   --line:#262b33; --line2:#1e232a; --accent:#7fb0ff; --accent-soft:#1c2836;
@@ -88,6 +93,12 @@ main{min-width:0;padding:clamp(20px,4vw,48px) clamp(18px,5vw,64px)}
 .reader .byline{font-size:13px;color:var(--sub);border-bottom:1px solid var(--line);
   padding-bottom:16px;display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center}
 .reader .byline b{color:var(--ink);font-weight:600;letter-spacing:.3px}
+.reader .byline .datedit{border:1px solid var(--line);background:var(--surface);color:var(--accent);
+  border-radius:8px;padding:3px 9px;font-size:11.5px;font-weight:600;font-family:var(--sans);cursor:pointer}
+.reader .byline .datedit:hover{border-color:var(--accent);background:var(--accent-soft)}
+.reader .byline .datedit.del{color:#b23a2b}
+.reader .byline .datedit.del:hover{border-color:#b23a2b;background:#fdecea}
+html[data-theme="dark"] .reader .byline .datedit.del:hover{background:#3a201d}
 
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0 26px;
   padding:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;
@@ -101,20 +112,24 @@ main{min-width:0;padding:clamp(20px,4vw,48px) clamp(18px,5vw,64px)}
 .toolbar .grp{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--faint);padding:0 4px;white-space:nowrap;flex:none}
 .toolbar input[type=range]{width:84px;accent-color:var(--accent)}
 
-.body{font-family:var(--serif);font-size:var(--fs);line-height:1.92;color:var(--ink)}
+.body{font-family:var(--reading-font,var(--serif));font-size:var(--fs);line-height:1.92;color:var(--ink)}
 .body p{margin:0 0 1.35em;max-width:var(--measure)}
 .body p:first-of-type::first-letter{font-size:3.1em;line-height:.86;float:left;font-weight:800;
   padding:2px 10px 0 0;color:var(--ink)}
 .body .sent{transition:background .2s;border-radius:3px}
 .body .sent.speaking{background:var(--mark)}
-.body.transmode .sent{cursor:pointer}
+.body.transmode .sent{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .body.transmode .sent:hover{background:var(--line2)}
+.body.transmode .sent:active{background:var(--accent-soft)}
+.body.transmode .sent.ko-open{background:var(--accent-soft);box-shadow:inset 0 -2px 0 var(--accent)}
 .w{cursor:pointer;border-radius:2px;transition:background .1s}
 .w:hover{background:var(--mark)}
 .body.showvocab .w.vocab{box-shadow:inset 0 -2px 0 var(--mark-line)}
 .w.saved{background:var(--mark);box-shadow:inset 0 -2px 0 var(--mark-line)}
 .ko-inline{display:block;color:var(--accent);font-family:var(--sans);font-size:.72em;
-  margin:.5em 0 1.1em;padding:10px 14px;background:var(--accent-soft);border-radius:10px;line-height:1.6}
+  margin:.5em 0 1.1em;padding:10px 36px 10px 14px;background:var(--accent-soft);border-radius:10px;
+  line-height:1.6;cursor:pointer;position:relative}
+.ko-inline::after{content:"✕";position:absolute;top:8px;right:12px;font-size:13px;color:var(--faint);font-weight:600}
 .readtip{font-family:var(--sans);font-size:12.5px;color:var(--faint);margin-top:34px;
   padding-top:16px;border-top:1px solid var(--line)}
 
@@ -276,6 +291,26 @@ html[data-theme="dark"] .syncbanner.err{background:#3a201d;color:#ff9b8f}
 .log-item .li-i{flex:none}
 @media(max-width:520px){ .cfgrow{flex-direction:column;gap:0} .log-item .li-t{min-width:auto} }
 
+/* ---------- Settings menu ---------- */
+.setwrap{position:relative}
+.setmenu{position:absolute;right:0;top:calc(100% + 10px);width:264px;max-width:calc(100vw - 24px);
+  background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+  padding:16px;z-index:70;display:none}
+.setmenu.show{display:block;animation:pop .16s ease}
+.set-sec+.set-sec{margin-top:15px;padding-top:15px;border-top:1px solid var(--line2)}
+.set-h{font-size:11px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;margin-bottom:9px}
+.set-opts{display:flex;gap:6px}
+.set-opts button{flex:1;border:1px solid var(--line);background:var(--surface);color:var(--sub);
+  border-radius:10px;padding:9px 4px;font-size:12.5px;font-weight:600;transition:.12s}
+.set-opts button:hover{border-color:var(--accent);color:var(--ink)}
+.set-opts button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.set-swatch{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid var(--line);margin-right:5px;vertical-align:-1px}
+.set-size{display:flex;align-items:center;gap:9px}
+.set-size button{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:6px 11px;font-size:14px;font-weight:700}
+.set-size button:hover{border-color:var(--accent)}
+.set-size input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
+.set-size .fsval{font-size:12px;color:var(--faint);min-width:38px;text-align:right}
+
 .hide{display:none!important}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--ink);
   color:var(--bg);padding:12px 20px;border-radius:24px;font-size:14px;z-index:300;box-shadow:var(--shadow);
@@ -305,7 +340,8 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
   .toolbar .grp.hide-sm{display:none}
   .body p:first-of-type::first-letter{font-size:2.6em}
   #pop.show{position:fixed;left:0!important;right:0;bottom:0;top:auto!important;width:100%;max-width:100%;
-    border-radius:18px 18px 0 0;padding:20px;animation:sheet .22s ease}
+    border-radius:18px 18px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+    max-height:82vh;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:sheet .22s ease}
   @keyframes sheet{from{transform:translateY(100%)}to{transform:translateY(0)}}
   .fcard{padding:38px 18px}
 }
@@ -326,7 +362,36 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
     <button id="navVocab" onclick="showView('vocab')">📒<span class="label">단어장</span> <span class="badge" id="vcount">0</span></button>
     <button id="navImport" class="hide-xs" onclick="showView('import')">➕<span class="label">신문 넣기</span></button>
     <button id="navSync" onclick="showView('sync')">☁️<span class="label">동기화</span><span class="syncdot" id="syncdot"></span></button>
-    <button class="ghost" id="themeBtn" onclick="toggleTheme()" aria-label="테마">🌙</button>
+    <div class="setwrap">
+      <button class="ghost" id="setBtn" onclick="toggleSettings(event)" aria-label="화면 설정">🎨</button>
+      <div id="setmenu" class="setmenu">
+        <div class="set-sec">
+          <div class="set-h">배경</div>
+          <div class="set-opts" id="optTheme">
+            <button data-v="white" onclick="setTheme('white')"><span class="set-swatch" style="background:#ffffff"></span>화이트</button>
+            <button data-v="beige" onclick="setTheme('beige')"><span class="set-swatch" style="background:#faf9f6"></span>연베이지</button>
+            <button data-v="dark" onclick="setTheme('dark')"><span class="set-swatch" style="background:#0f1216"></span>블랙</button>
+          </div>
+        </div>
+        <div class="set-sec">
+          <div class="set-h">글꼴</div>
+          <div class="set-opts" id="optFont">
+            <button data-v="serif" onclick="setReadFont('serif')" style="font-family:Georgia,serif">세리프</button>
+            <button data-v="sans" onclick="setReadFont('sans')" style="font-family:-apple-system,'Malgun Gothic',sans-serif">고딕</button>
+            <button data-v="palatino" onclick="setReadFont('palatino')" style="font-family:'Palatino Linotype','Book Antiqua',Palatino,serif">팔라티노</button>
+          </div>
+        </div>
+        <div class="set-sec">
+          <div class="set-h">글자 크기</div>
+          <div class="set-size">
+            <button onclick="setFont(-1)" aria-label="작게">A−</button>
+            <input type="range" id="fsRange" min="15" max="30" step="1" value="20" oninput="setFontAbs(+this.value)">
+            <button onclick="setFont(1)" aria-label="크게">A＋</button>
+            <span class="fsval" id="fsVal">20px</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </nav>
 </header>
 
@@ -378,6 +443,13 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
   <div class="guide">
     ① PDF를 아래 상자에 <b>드래그&드롭</b>하거나 클릭해 선택하면 자동으로 텍스트를 뽑아 리딩 목록에 추가합니다.<br>
     ② 또는 기사 텍스트를 직접 <b>붙여넣기</b> 하세요. <span style="color:var(--faint)">(PDF 해석·사전·번역은 인터넷 연결 시 동작합니다.)</span>
+  </div>
+  <div class="cfgrow" style="margin:4px 0 12px">
+    <div style="flex:1">
+      <label style="display:block;font-size:12.5px;font-weight:600;color:var(--sub);margin-bottom:5px">
+        📅 신문 발행일 <span style="color:var(--faint);font-weight:400">(비워두면 신문 내용/파일명에서 자동 인식)</span></label>
+      <input class="field-title" id="pdfDate" type="date" title="이 신문의 발행일" style="max-width:280px">
+    </div>
   </div>
   <div id="drop">
     <div class="big">📄</div>
@@ -470,10 +542,10 @@ const ISSUE_DATE = "2026-06-30";   // 내장된 WSJ 발행일
 const ART = JSON.parse(document.getElementById('ARTICLE_DATA').textContent);
 ART.forEach(a=>{ a.vocabSet = new Set((a.vocab||[]).map(w=>w.toLowerCase())); if(!a.date) a.date=ISSUE_DATE; });
 const SECTIONS = [...new Set(ART.map(a=>a.section))];
-// 오프라인 사전 (핵심 어휘 한국어 뜻) + 실제 지면 이미지 매니페스트
+// 오프라인 사전(핵심 어휘 한국어 뜻) + 실제 지면 이미지 매니페스트
 const KO_DICT = JSON.parse(document.getElementById('KO_DICT').textContent||'{}');
 const PAGES = { "2026-06-30": { count:30, base:"pages/2026-06-30" } };
-const PAGE_BASE = "";  // 앱과 같은 폴더 기준 상대경로 (GitHub Pages/저장소)
+const PAGE_BASE = "";
 
 const store = {
   get vocab(){ try{return JSON.parse(localStorage.getItem('wsj_vocab')||'{}')}catch(e){return {}} },
@@ -510,14 +582,52 @@ function showView(v){
   if(v==='sync') renderSync();
   stopSpeak(); hidePop(); closeDrawer();
 }
-function toggleTheme(){
+/* ---------------- Appearance (배경·글꼴·글자크기) ---------------- */
+const READ_FONTS={
+  serif:"Georgia,'Times New Roman','Nanum Myeongjo',serif",
+  sans:"-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Malgun Gothic','Apple SD Gothic Neo',sans-serif",
+  palatino:"'Palatino Linotype','Book Antiqua',Palatino,'Nanum Myeongjo',serif"
+};
+function setTheme(v){
   const d=document.documentElement;
-  const dark=d.getAttribute('data-theme')==='dark';
-  d.setAttribute('data-theme', dark?'light':'dark');
-  $('#themeBtn').textContent = dark?'🌙':'☀️';
-  localStorage.setItem('wsj_theme', dark?'light':'dark');
+  if(v==='beige') d.removeAttribute('data-theme'); else d.setAttribute('data-theme',v);
+  localStorage.setItem('wsj_theme',v); syncSettingUI();
 }
-if(localStorage.getItem('wsj_theme')==='dark'){ document.documentElement.setAttribute('data-theme','dark'); $('#themeBtn').textContent='☀️'; }
+function setReadFont(v){
+  document.documentElement.style.setProperty('--reading-font', READ_FONTS[v]||READ_FONTS.serif);
+  localStorage.setItem('wsj_font',v); syncSettingUI();
+}
+function curFs(){ return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fs'))||20; }
+function applyFontSize(px){
+  fontSize=Math.max(15,Math.min(30,Math.round(px)));
+  document.documentElement.style.setProperty('--fs',fontSize+'px');
+  localStorage.setItem('wsj_fs',fontSize);
+  const r=$('#fsRange'), l=$('#fsVal');
+  if(r) r.value=fontSize; if(l) l.textContent=fontSize+'px';
+}
+function setFont(d){ applyFontSize((fontSize||curFs())+d*1.5); }
+function setFontAbs(px){ applyFontSize(px); }
+function syncSettingUI(){
+  const th=localStorage.getItem('wsj_theme')||'beige';
+  const fn=localStorage.getItem('wsj_font')||'serif';
+  $$('#optTheme button').forEach(b=>b.classList.toggle('on',b.dataset.v===th));
+  $$('#optFont button').forEach(b=>b.classList.toggle('on',b.dataset.v===fn));
+  const r=$('#fsRange'), l=$('#fsVal'), s=fontSize||curFs();
+  if(r) r.value=s; if(l) l.textContent=Math.round(s)+'px';
+}
+function toggleSettings(e){ if(e) e.stopPropagation(); $('#setmenu').classList.toggle('show'); syncSettingUI(); }
+document.addEventListener('click',e=>{
+  const m=$('#setmenu');
+  if(m && m.classList.contains('show') && !m.contains(e.target) && e.target.id!=='setBtn') m.classList.remove('show');
+});
+(function initAppearance(){
+  const th=localStorage.getItem('wsj_theme');
+  if(th && th!=='beige') document.documentElement.setAttribute('data-theme',th);
+  const fn=localStorage.getItem('wsj_font');
+  if(fn && READ_FONTS[fn]) document.documentElement.style.setProperty('--reading-font',READ_FONTS[fn]);
+  const fs=parseFloat(localStorage.getItem('wsj_fs'));
+  if(fs){ fontSize=Math.max(15,Math.min(30,fs)); document.documentElement.style.setProperty('--fs',fontSize+'px'); }
+})();
 
 /* ---------------- Sidebar list ---------------- */
 function renderSectFilter(){
@@ -536,6 +646,54 @@ function issueLabel(date){
   if(!m) return date||'날짜 미상';
   const wd=WD[new Date(date+'T00:00:00').getDay()];
   return `${+m[1]}. ${+m[2]}. ${+m[3]} (${wd})`;
+}
+const MONTHS=['January','February','March','April','May','June','July','August',
+  'September','October','November','December'];
+function enDate(date){
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(date||'');
+  return m ? `${MONTHS[+m[2]-1]} ${+m[3]}, ${+m[1]}` : '';
+}
+// find the WSJ issue date inside extracted text, e.g. "THURSDAY, JULY 9, 2026"
+function parseIssueDate(text){
+  const re=/\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})\s*,?\s*(20\d\d)\b/i;
+  const m=re.exec(text||''); if(!m) return null;
+  const mo=MONTHS.findIndex(x=>x.toLowerCase()===m[1].toLowerCase())+1;
+  const d=+m[2]; if(!mo||d<1||d>31) return null;
+  return `${m[3]}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+// is this article part of a user-imported paper (so its date is editable)?
+function isUserPaper(a){ return store.papers.some(p=>String(a.id).startsWith(p.id+'_')); }
+function editPaperDate(artId){
+  const a=ART.find(x=>String(x.id)===String(artId)); if(!a) return;
+  const paper=store.papers.find(p=>String(artId).startsWith(p.id+'_'));
+  if(!paper){ toast('이 기사는 발행일을 바꿀 수 없습니다'); return; }
+  const v=prompt('이 신문의 발행일을 입력하세요 (YYYY-MM-DD)', a.date||todayStr());
+  if(v==null) return;
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v.trim());
+  if(!m){ toast('YYYY-MM-DD 형식으로 입력하세요'); return; }
+  const date=v.trim();
+  const papers=store.papers; const p=papers.find(x=>x.id===paper.id);
+  p.date=date; store.papers=papers;
+  ART.forEach(x=>{ if(String(x.id).startsWith(paper.id+'_')) x.date=date; });
+  renderList(); scheduleSync();
+  toast('발행일을 '+issueLabel(date)+'로 바꿨습니다');
+  if(curArt && String(curArt.id)===String(artId)) openArticle(artId);
+}
+function deletePaper(artId){
+  const paper=store.papers.find(p=>String(artId).startsWith(p.id+'_'));
+  if(!paper){ toast('이 신문은 삭제할 수 없습니다'); return; }
+  if(!confirm(`'${paper.title}' 신문과 그 안의 기사 ${paper.articles.length}개를 모두 삭제할까요?`)) return;
+  for(let i=ART.length-1;i>=0;i--){ if(String(ART[i].id).startsWith(paper.id+'_')) ART.splice(i,1); }
+  store.papers = store.papers.filter(p=>p.id!==paper.id);
+  uploadedPapers.delete(paper.id); fbRemovePaper(paper.id);
+  SECTIONS.length=0; [...new Set(ART.map(a=>a.section))].forEach(s=>SECTIONS.push(s));
+  if(!SECTIONS.includes(curFilter)) curFilter='ALL';
+  curArt=null;
+  $('#reader').innerHTML=`<div class="empty"><div class="big">📖</div>
+    <p>왼쪽에서 기사를 선택하세요.<br>단어를 <b>탭</b>하면 발음·뜻·한국어 번역이 나옵니다.</p></div>`;
+  renderSectFilter(); renderList(); scheduleSync();
+  logActivity('paper','🗑️','신문 삭제: '+paper.title);
+  toast('신문을 삭제했습니다');
 }
 function pageOf(a){ return a.page==null?999:a.page; }
 function renderList(){
@@ -635,8 +793,7 @@ function renderEpaper(){
       <button class="primary" onclick="epReadPage()">📖 이 면 기사 읽기</button>
     </div>
     <div class="ep-stage" id="epStage">
-      <img id="epImg" src="${esc(epUrl(epDate,epPage))}" alt="${esc(issueLabel(epDate))} ${epPage}면"
-        onerror="epImgError()">
+      <img id="epImg" src="${esc(epUrl(epDate,epPage))}" alt="${esc(issueLabel(epDate))} ${epPage}면" onerror="epImgError()">
     </div>
     <p class="ep-hint">👆 손가락으로 확대(핀치)·➕➖ 버튼 확대 · 좌우로 밀면 면 넘김 · 기사를 읽으려면 <b>📖 이 면 기사 읽기</b></p>
     <div id="epPageList"></div>`;
@@ -650,8 +807,7 @@ function applyEpScale(){ const img=$('#epImg'); if(img) img.style.width=(100*epS
 function epZoom(d){ epScale=Math.max(1,Math.min(4,+(epScale+d*0.5).toFixed(2))); applyEpScale(); }
 function epGo(d){ const c=PAGES[epDate].count; const n=Math.min(c,Math.max(1,epPage+d)); if(n===epPage) return; epPage=n; epScale=1; renderEpaper(); }
 function epReadPage(){
-  const arts=ART.filter(a=>(a.date||ISSUE_DATE)===epDate && a.page===epPage)
-    .sort((a,b)=>b.words-a.words);
+  const arts=ART.filter(a=>(a.date||ISSUE_DATE)===epDate && a.page===epPage).sort((a,b)=>b.words-a.words);
   const box=$('#epPageList');
   if(!arts.length){ box.innerHTML='<p class="emptymini" style="margin-top:12px">이 면에서 추출된 학습용 기사가 없어요. 다른 면을 넘겨보세요.</p>'; return; }
   box.innerHTML='<div class="np-section-h">이 면의 기사 · Page '+epPage+'</div><div class="np-inside">'+arts.map(a=>npItem(a,true)).join('')+'</div>';
@@ -660,8 +816,7 @@ function epReadPage(){
 function bindEpSwipe(){
   const st=$('#epStage'); if(!st) return; let x0=null,y0=null;
   st.addEventListener('touchstart',e=>{ if(e.touches.length===1 && epScale===1){ x0=e.touches[0].clientX; y0=e.touches[0].clientY; } else x0=null; },{passive:true});
-  st.addEventListener('touchend',e=>{ if(x0==null) return; const t=e.changedTouches[0];
-    const dx=t.clientX-x0, dy=t.clientY-y0;
+  st.addEventListener('touchend',e=>{ if(x0==null) return; const t=e.changedTouches[0]; const dx=t.clientX-x0, dy=t.clientY-y0;
     if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5){ epGo(dx<0?1:-1); } x0=null; },{passive:true});
 }
 
@@ -697,7 +852,9 @@ function openArticle(id){
     <div class="kicker">${esc(a.section)}${a.page?' · PAGE '+a.page:''}</div>
     <h1>${esc(a.headline)}</h1>
     <div class="byline">${a.byline?'<b>'+esc(a.byline)+'</b>':''}
-      <span>The Wall Street Journal · June 30, 2026</span></div>
+      <span>The Wall Street Journal · ${esc(enDate(a.date)||'June 30, 2026')}</span>
+      ${isUserPaper(a)?`<button class="datedit" onclick="editPaperDate('${esc(String(a.id))}')" title="발행일 수정">🗓 발행일 수정</button>
+      <button class="datedit del" onclick="deletePaper('${esc(String(a.id))}')" title="이 신문 전체 삭제">🗑️ 신문 삭제</button>`:''}</div>
     <div class="toolbar">
       <button id="btnPlay" onclick="toggleSpeak()">🔊 <span class="tl">듣기</span></button>
       <div class="grp hide-sm">속도<input type="range" min="0.6" max="1.4" step="0.1" value="1"
@@ -710,25 +867,21 @@ function openArticle(id){
       <div class="grp">글자<button onclick="setFont(-1)" style="padding:6px 9px">A−</button><button onclick="setFont(1)" style="padding:6px 9px">A＋</button></div>
     </div>
     <div class="body showvocab" id="artbody">${paras.join('')}</div>
-    <p class="readtip">💡 단어 탭 → 뜻·발음·번역 · <b>🔊 듣기</b>로 낭독 · <b>🇰🇷</b> 켜고 문장 탭 → 한국어 해석</p>`;
-  if(fontSize) $('#artbody').style.setProperty('--fs',fontSize+'px');
+    <p class="readtip">💡 단어 탭 → 뜻·발음·번역 · <b>🔊 듣기</b>로 낭독 · <b>🇰🇷 문장번역</b> 켜고 문장 아무 곳이나 탭 → 한국어 해석</p>`;
   bindWords();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function bindWords(){
   $$('#artbody .w').forEach(el=>el.addEventListener('click',e=>{
-    e.stopPropagation(); showWord(el.dataset.w, el);
+    e.stopPropagation();
+    if(transMode){ const s=el.closest('.sent'); if(s){ translateSentence(s); return; } }
+    showWord(el.dataset.w, el);
   }));
   $$('#artbody .sent').forEach(el=>el.addEventListener('click',e=>{
     if(!transMode) return;
-    if(e.target.classList.contains('w')) return;
+    if(e.target.classList && e.target.classList.contains('ko-inline')) return;
     translateSentence(el);
   }));
-}
-function setFont(d){
-  const cur=fontSize||parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fs'))||20;
-  fontSize=Math.max(15,Math.min(30,cur+d*1.5));
-  const b=$('#artbody'); if(b) b.style.setProperty('--fs',fontSize+'px');
 }
 function valLbl(el){ $('#rateLbl').textContent=(+el.value).toFixed(1)+'×'; }
 
@@ -742,15 +895,17 @@ let transMode=false;
 function toggleTrans(){ transMode=!transMode;
   $('#artbody').classList.toggle('transmode',transMode);
   $('#btnTrans').classList.toggle('on',transMode);
-  toast(transMode?'문장을 탭하면 한국어 번역이 나옵니다':'문장번역 끔');
+  toast(transMode?'문장을 탭하면 한국어 번역이 나옵니다 (단어 뜻은 문장번역을 끄고 탭)':'문장번역 끔 · 단어를 탭하면 뜻이 나옵니다');
 }
 async function translateSentence(el){
   if(el.nextSibling && el.nextSibling.classList && el.nextSibling.classList.contains('ko-inline')){
-    el.nextSibling.remove(); return;
+    el.nextSibling.remove(); el.classList.remove('ko-open'); return;
   }
   const txt=el.textContent.trim(); if(!txt) return;
   const ko=document.createElement('span'); ko.className='ko-inline'; ko.textContent='번역 중…';
-  el.after(ko);
+  ko.title='탭하면 닫기';
+  ko.addEventListener('click',ev=>{ ev.stopPropagation(); ko.remove(); el.classList.remove('ko-open'); });
+  el.after(ko); el.classList.add('ko-open');
   const t=await translateKO(txt);
   ko.textContent = t || '(번역 실패 — 인터넷 연결을 확인하세요)';
 }
@@ -794,14 +949,14 @@ document.addEventListener('click',e=>{
 
 /* ---------------- External APIs (graceful) ---------------- */
 const dictCache={}, transCache={};
-// persistent offline caches (so once looked up online, words work offline later)
-let _tc=null, _dc=null;
+// 오프라인 캐시: 한 번 온라인에서 찾은 단어/문장은 저장해 오프라인에서 재사용
+let _tc=null,_dc=null;
 function tcache(){ if(_tc===null){ try{_tc=JSON.parse(localStorage.getItem('wsj_tcache')||'{}')}catch(e){_tc={}} } return _tc; }
 function dcache(){ if(_dc===null){ try{_dc=JSON.parse(localStorage.getItem('wsj_dcache')||'{}')}catch(e){_dc={}} } return _dc; }
 function saveCache(k){ try{ localStorage.setItem(k==='t'?'wsj_tcache':'wsj_dcache', JSON.stringify(k==='t'?_tc:_dc)); }catch(e){} }
 async function lookupDict(word){
   if(dictCache[word]!==undefined) return dictCache[word];
-  const dc=dcache(); if(dc[word]!==undefined){ dictCache[word]=dc[word]; return dc[word]; }  // offline reuse
+  const dc=dcache(); if(dc[word]!==undefined){ dictCache[word]=dc[word]; return dc[word]; }
   try{
     const res=await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(word));
     if(!res.ok){ dictCache[word]=null; return null; }
@@ -818,7 +973,7 @@ async function translateKO(text){
   if(transCache[key]!==undefined) return transCache[key];
   const w=text.trim().toLowerCase();
   if(KO_DICT[w]){ transCache[key]=KO_DICT[w]; return KO_DICT[w]; }        // ← 내장 오프라인 사전
-  const tc=tcache(); if(tc[key]!==undefined){ transCache[key]=tc[key]; return tc[key]; }  // offline reuse
+  const tc=tcache(); if(tc[key]!==undefined){ transCache[key]=tc[key]; return tc[key]; }
   try{
     const url='https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ko&dt=t&q='+encodeURIComponent(text);
     const res=await fetch(url); if(!res.ok){ transCache[key]=''; return ''; }
@@ -989,21 +1144,75 @@ function parseDateFromName(name){
   const m=/(20\d{2})[-_.]?(0[1-9]|1[0-2])[-_.]?(0[1-9]|[12]\d|3[01])/.exec(name||'');
   return m ? `${m[1]}-${m[2]}-${m[3]}` : todayStr();
 }
+// PDF text extraction often leaves broken glyphs (custom-font arrows/bullets
+// mapped into the private-use area → □ boxes) and drags the WSJ front-page
+// market-index ticker into the body. Clean both so imported text reads right.
+// Runs on every load of a stored paper, so already-saved articles are fixed too.
+function stripMasthead(s){
+  const head=s.slice(0,900);
+  if(!/DJIA/i.test(head) || !/NASDAQ/i.test(head)) return s;           // only WSJ index blocks
+  const m=/YEN[^A-Za-z]{0,8}\d[\d.,]*/i.exec(head);                    // ticker ends at YEN <num>
+  if(!m) return s;
+  const cut=m.index+m[0].length;
+  if(cut>=900) return s;                                               // don't chop into real prose
+  return s.slice(cut).replace(/^[^A-Za-z]+/,'');
+}
+function cleanImportedText(s){
+  s=String(s||'')
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g,'') // control / C1
+    .replace(/[\uE000-\uF8FF]/g,'')      // private-use glyphs (mis-mapped PDF fonts → boxes)
+    .replace(/[\uFFF0-\uFFFF]/g,'')      // specials / replacement char
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g,''); // zero-width
+  return stripMasthead(s).replace(/\s+/g,' ').trim();
+}
+// Imported articles carry no section, so guess one from the text and file
+// them into the same WSJ sections as the built-in articles. Best-effort,
+// offline, deterministic — runs on every load so stored papers re-sort too.
+const GENERIC_SECTIONS=['내가 넣은 신문','내가 추가한 기사',''];
+const SECTION_RULES=[
+  ['Markets', ['stock','shares','s&p','nasdaq',' dow ','bond','yield','treasur','investor','trading','trader',
+    'equit','commodit','oil price','crude','the dollar','currency','etf','portfolio','benchmark','rally','sell-off','wall street']],
+  ['Business & Finance', ['company','companies','ceo','chief executive','merger','acquisition','acquire','revenue',
+    'profit','earnings','startup','start-up','ipo','the deal','lender','layoff','corporate','quarterly','sales rose','sales fell']],
+  ['Life & Arts', ['film','movie','book','novel','author','artist','music','album','restaurant','recipe','fashion',
+    'style','travel','culture','museum','theater','theatre','celebrity','streaming','podcast','wellness','fitness','gallery','cuisine','director']],
+  ['Opinion', ['editorial','op-ed','opinion','commentary','columnist','we believe','viewpoint']],
+  ['U.S. & World News', ['president','government','election','senate','congress','lawmaker','military','minister',
+    'policy','court','immigration','white house','governor','federal','foreign','diplomat','protest','voters','administration','parliament','ukraine','israel']],
+];
+function classifySection(body, headline){
+  const t=(' '+(headline+' ').repeat(3)+' '+body+' ').toLowerCase();
+  const head=t.slice(0,240);   // explicit WSJ section label near the top wins
+  if(/life ?& ?arts|arts in review|personal journal/.test(head)) return 'Life & Arts';
+  if(/business ?& ?finance|business news/.test(head)) return 'Business & Finance';
+  if(/\bmarkets\b|money ?& ?investing/.test(head)) return 'Markets';
+  if(/review ?& ?outlook|\beditorial\b|\bop-ed\b/.test(head)) return 'Opinion';
+  if(/world news|u\.s\. news|u\.s\. ?& ?world/.test(head)) return 'U.S. & World News';
+  let best='U.S. & World News', bestScore=0;
+  for(const [sec,keys] of SECTION_RULES){
+    let s=0; for(const k of keys){ let i=t.indexOf(k); while(i!==-1){ s++; i=t.indexOf(k,i+k.length); } }
+    if(s>bestScore){ bestScore=s; best=sec; }
+  }
+  return bestScore>0?best:'U.S. & World News';
+}
 function mkArticle(raw, paperId, idx){
-  const body=(raw.body||'').replace(/\s+/g,' ').trim();
+  const body=cleanImportedText(raw.body||'');
   const words=body.split(' ').length;
   const vocab=raw.vocab || [...new Set((body.match(/[a-z]{8,}/g)||[]))].slice(0,14);
-  const a={ id:paperId+'_'+idx, section:raw.section||'내가 넣은 신문', page:raw.page||null,
-    headline:raw.headline||'제목 없음', byline:raw.byline||'', body, words,
+  const headline=cleanImportedText(raw.headline||'')||'제목 없음';
+  let section=raw.section||'';
+  if(GENERIC_SECTIONS.includes(section)) section=classifySection(body, headline);
+  const a={ id:paperId+'_'+idx, section, page:raw.page||null,
+    headline, byline:raw.byline||'', body, words,
     minutes:Math.max(1,Math.round(words/200)), vocab, vocabSet:new Set(vocab.map(w=>w.toLowerCase())) };
   return a;
 }
 // load a stored paper (from localStorage/remote) into the live ART list
 function loadPaperIntoART(paper){
-  if(!SECTIONS.includes(paper.section||'내가 넣은 신문')) SECTIONS.push(paper.section||'내가 넣은 신문');
   paper.articles.forEach((raw,idx)=>{
-    const a=mkArticle({...raw, section:paper.section}, paper.id, idx);
+    const a=mkArticle({...raw, section: raw.section||paper.section}, paper.id, idx);
     a.date = paper.date || todayStr();
+    if(!SECTIONS.includes(a.section)) SECTIONS.push(a.section);
     if(!ART.some(x=>x.id===a.id)) ART.unshift(a);
   });
 }
@@ -1066,36 +1275,108 @@ async function handlePDF(file){
     status.textContent='📖 텍스트 추출 중…';
     const buf=await file.arrayBuffer();
     const pdf=await pdfjs.getDocument({data:buf}).promise;
-    const raws=[];
+    const raws=[]; let firstPageText='';
     for(let p=1;p<=pdf.numPages;p++){
       status.textContent=`📖 ${p}/${pdf.numPages} 페이지 분석 중… (기사 ${raws.length}개)`;
       const page=await pdf.getPage(p);
       const tc=await page.getTextContent();
+      if(p===1) firstPageText=tc.items.map(it=>it.str).join(' ');
       extractArticlesFromPage(tc.items, file.name, p).forEach(a=>raws.push(a));
     }
     if(!raws.length){ status.textContent='⚠️ 기사를 찾지 못했습니다. 텍스트 붙여넣기를 이용해 보세요.'; return; }
     const title=file.name.replace(/\.pdf$/i,'');
-    registerPaper({ title, section:'내가 넣은 신문', date:parseDateFromName(file.name), articles:raws });
+    // date priority: user-entered field → date printed in the paper → filename → today
+    const picked=($('#pdfDate').value)||parseIssueDate(firstPageText)||parseDateFromName(file.name);
+    registerPaper({ title, section:'내가 넣은 신문', date:picked, articles:raws });
+    $('#pdfDate').value='';
     status.innerHTML=`✅ <b>${raws.length}개</b> 기사를 추가했습니다! 상단 <b>📰 리딩</b>에서 확인하세요.`;
     toast(`✅ ${raws.length}개 기사 추가 완료`);
   }catch(e){ status.textContent='⚠️ PDF 처리 오류: '+e.message; }
 }
+/* ---- Newspaper page parser ------------------------------------------
+ * Splits one PDF page into separate articles using glyph coordinates:
+ *   1) detect the column grid from body-text x-positions (histogram peaks)
+ *   2) rebuild reading order column-by-column, top-to-bottom
+ *   3) start a new article at each large-font headline (merging multi-line
+ *      headlines), collect the body that follows
+ *   4) drop page furniture (mastheads, tickers, footers, section labels)
+ * Far better than dumping a whole page as one blob with a random headline.
+ * ------------------------------------------------------------------- */
+const FURN_RE=[
+  /^for personal/i,/non-commercial use only/i,/^the wall street journal\.?$/i,
+  /^\*+$/,/wsj\.com/i,/dow jones/i,/^continued/i,/please turn to/i,/^see\b.*\bpage/i,
+  /^(u\.s\.|world|business|markets|life|arts|opinion|sports|technology|personal journal|u\.s\.watch|world watch)\s*(news|& finance|& arts|watch)?\.?$/i,
+  /^what.?s$/i,/^news$/i,/^inside$/i,/^corrections/i,/^amplifications/i,/^contents$/i,/^mansion$/i,
+];
+function isFurniture(s){ s=(s||'').trim(); if(s.length<3) return true;
+  if(FURN_RE.some(re=>re.test(s))) return true;
+  const letters=(s.match(/[A-Za-z]/g)||[]).length; return letters<Math.max(2,s.length*0.4); }
+function looksLikeProse(body){
+  const toks=body.split(/\s+/).filter(Boolean); if(toks.length<40) return false;
+  // real article text is mostly lowercase words; ALL-CAPS ad copy, data
+  // tables and garbled custom-font pages have very few — so filter those out
+  const lower=toks.filter(t=>/[a-z]{2,}/.test(t)).length;
+  return lower/toks.length>=0.5;
+}
+function detectColumns(bodyRuns){
+  const bin=5,h={}; bodyRuns.forEach(r=>{const k=Math.round(r.x/bin)*bin; h[k]=(h[k]||0)+1;});
+  const keys=Object.keys(h).map(Number).sort((a,b)=>a-b); if(!keys.length) return [0];
+  const maxC=Math.max(...keys.map(k=>h[k])), th=Math.max(4,maxC*0.22);
+  const peaks=keys.filter(k=>h[k]>=th);
+  const wc=b=>{let s=0,w=0;b.forEach(k=>{s+=k*h[k];w+=h[k];});return s/w;};
+  const cols=[]; let g=[];
+  for(const k of peaks){ if(g.length && k-g[g.length-1]>60){ cols.push(wc(g)); g=[]; } g.push(k); }
+  if(g.length) cols.push(wc(g));
+  return cols.length?cols:[0];
+}
 function extractArticlesFromPage(items, fname, pno){
-  const out=[];
-  const lines=items.filter(it=>it.str.trim());
-  const sizes=lines.map(it=>Math.abs(it.transform[3])||it.height||0);
-  const med=sizes.slice().sort((a,b)=>a-b)[Math.floor(sizes.length/2)]||8;
-  let text='', heads=[];
-  lines.forEach(it=>{
-    const sz=Math.abs(it.transform[3])||it.height||med;
-    if(sz>med*1.5 && it.str.trim().length>4 && it.str.trim().length<90){ heads.push(it.str.trim()); }
-    text+=it.str+(it.hasEOL?' ':'');
+  let runs=items.filter(it=>it.str.trim())
+    .map(it=>({s:it.str, x:it.transform[4], y:it.transform[5], w:it.width||0,
+               fs:Math.abs(it.transform[3])||it.height||0}));
+  if(runs.length<25) return [];
+  const fsSorted=runs.map(r=>r.fs).sort((a,b)=>a-b);
+  const bodyFS=fsSorted[Math.floor(fsSorted.length*0.5)]||9;
+  const headTh=Math.max(bodyFS*1.55, 13);
+  const cols=detectColumns(runs.filter(r=>r.fs<=bodyFS*1.25));
+  const colOf=x=>{ let bi=0,bd=1e9; cols.forEach((c,i)=>{const d=Math.abs(x-c);if(d<bd){bd=d;bi=i;}}); return bi; };
+  runs.forEach(r=>r.col=colOf(r.x));
+  const byCol={}; runs.forEach(r=>{ (byCol[r.col]=byCol[r.col]||[]).push(r); });
+  const lines=[];
+  Object.keys(byCol).map(Number).sort((a,b)=>a-b).forEach(ci=>{
+    const rs=byCol[ci].sort((a,b)=> b.y-a.y || a.x-b.x);
+    let cur=null;
+    for(const r of rs){
+      if(cur && Math.abs(cur.y-r.y)<=Math.max(2,r.fs*0.45)) cur.runs.push(r);
+      else { cur={col:ci, y:r.y, runs:[r]}; lines.push(cur); }
+    }
   });
-  text=text.replace(/-\s+/g,'').replace(/\s+/g,' ').trim();
-  if(text.split(' ').length<120) return out;
-  const headline=heads.find(h=>/^[A-Z]/.test(h)&&h.split(' ').length>=3)||(`${fname} p.${pno}`);
-  out.push({ section:'내가 넣은 신문', page:pno, headline, byline:'', body:text });
-  return out;
+  const joinRuns=rr=>{ rr=rr.slice().sort((a,b)=>a.x-b.x); let s='',pr=null;
+    for(const r of rr){ if(pr){ const gap=r.x-(pr.x+pr.w); if(gap>Math.max(1,r.fs*0.22)) s+=' '; } s+=r.s; pr=r; }
+    return s.replace(/\s+/g,' ').trim(); };
+  lines.forEach(L=>{
+    L.text=joinRuns(L.runs);
+    const big=L.runs.filter(r=>r.fs>=headTh);
+    L.bigText=joinRuns(big);
+    L.fs=Math.max.apply(null,L.runs.map(r=>r.fs));
+    const bigW=big.reduce((a,r)=>a+r.w,0), allW=L.runs.reduce((a,r)=>a+r.w,0)||1;
+    L.isHead = L.fs>=headTh && bigW/allW>0.6 && L.bigText.length>=5 && L.bigText.length<=110;
+  });
+  lines.sort((a,b)=> a.col-b.col || b.y-a.y );
+  const arts=[]; let cur=null;
+  const flush=()=>{ if(cur){ const body=cur.body.join(' ').replace(/\s+/g,' ').trim();
+    if(body.split(/\s+/).filter(Boolean).length>=55 && looksLikeProse(body)) cur._body=body, arts.push(cur); } };
+  for(const L of lines){
+    if(isFurniture(L.text)) continue;
+    if(L.isHead){
+      const cont=cur && cur.inHead && cur.col===L.col && Math.abs(cur.lastY-L.y)<L.fs*2.2;
+      if(cont){ cur.head.push(L.bigText); cur.lastY=L.y; }
+      else { flush(); cur={head:[L.bigText], body:[], inHead:true, col:L.col, lastY:L.y}; }
+    } else if(cur){ cur.inHead=false; cur.body.push(L.text); }
+  }
+  flush();
+  return arts.map(a=>({ section:'내가 넣은 신문', page:pno, byline:'',
+      headline:a.head.join(' ').replace(/\s+/g,' ').trim(), body:a._body }))
+    .filter(a=>a.headline.length>4 && !isFurniture(a.headline) && a.headline.split(' ').length>=2);
 }
 
 /* ---------------- utils ---------------- */
@@ -1317,6 +1598,7 @@ async function fbPush(){
   finally{ fbBusy=false; }
 }
 async function fbRemoveVocab(word){ if(fbActive()){ try{ await fbReq('PATCH','vocab',{[word]:null}); }catch(e){} } }
+async function fbRemovePaper(id){ if(fbActive()){ try{ await fbReq('DELETE','papers/'+fbKey(id)); }catch(e){} } }
 async function fbClearVocab(){ if(fbActive()){ try{ await fbReq('PUT','vocab',{}); }catch(e){} } }
 function connectFirebase(){
   const url=($('#fbUrl').value||'').trim();
