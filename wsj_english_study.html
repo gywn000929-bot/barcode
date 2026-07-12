@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>WSJ English Study · 월스트리트 저널로 영어 공부</title>
+<!-- PWA: 홈 화면에 추가하면 앱처럼 설치됩니다 -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#12223a">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WSJ Study">
+<meta name="mobile-web-app-capable" content="yes">
 <style>
 :root{
   --bg:#faf9f6; --surface:#ffffff; --ink:#16130f; --sub:#6a655d; --faint:#94908a;
@@ -1725,6 +1733,8 @@ if(fbActive()){          // Firebase auto-backup: zero-setup on every device
   pullState().then(()=>pushState()); startPoll();
   if(fromLink){ toast('📱 이 기기가 연결되었습니다'); logActivity('sync','📱','새 기기 연결됨'); showView('sync'); }
 }
+/* PWA: 오프라인 지원 + 홈화면 설치 */
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
 </script>
 </body>
 </html>
