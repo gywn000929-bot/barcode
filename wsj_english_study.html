@@ -64,6 +64,7 @@ header.masthead{
 .brand .k{font-size:9.5px;letter-spacing:2.5px;color:var(--faint);text-transform:uppercase;font-weight:600}
 .brand .t{font-family:var(--serif);font-size:clamp(18px,3.4vw,25px);font-weight:700;letter-spacing:-.4px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand .wm-sm{display:none}
 .spacer{flex:1}
 .nav{display:flex;gap:6px;align-items:center}
 .nav button{border:1px solid transparent;background:transparent;color:var(--sub);
@@ -351,8 +352,16 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
 }
 @media(max-width:640px){
   :root{--fs:19.5px}
-  header.masthead{gap:10px;padding:calc(10px + var(--safetop)) 14px 10px}
-  .brand .k{font-size:8.5px;letter-spacing:2px}
+  header.masthead{gap:6px;padding:calc(10px + var(--safetop)) 12px 10px}
+  .brand{flex:none;margin-right:6px}
+  .brand .k{display:none}
+  .brand .t{font-size:19px;letter-spacing:-.2px}
+  .brand .wm-lg{display:none}
+  .brand .wm-sm{display:inline;white-space:nowrap}
+  .brand .wm-sm b{color:var(--accent);font-weight:800}
+  .nav{gap:2px}
+  .nav button{padding:8px 6px;font-size:16px}
+  .iconbtn{width:38px;height:38px}
   main{padding:24px 20px calc(28px + var(--safebot))}
   .reader h1{line-height:1.2;letter-spacing:-.3px}
   .body{line-height:2.0}
@@ -377,7 +386,7 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
   <button class="iconbtn" id="menuBtn" onclick="toggleDrawer()" aria-label="목록 열기">☰</button>
   <div class="brand">
     <span class="k">English Study Edition</span>
-    <span class="t">The Wall Street Journal</span>
+    <span class="t"><span class="wm-lg">The Wall Street Journal</span><span class="wm-sm">WSJ&nbsp;<b>Study</b></span></span>
   </div>
   <div class="spacer"></div>
   <nav class="nav">
