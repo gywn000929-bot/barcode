@@ -43,6 +43,14 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 a{color:var(--accent);text-decoration:none}
 ::selection{background:var(--mark)}
 
+/* ---------- Reading fonts (self-hosted, OFL) ---------- */
+@font-face{font-family:'Literata';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/literata-400.woff2') format('woff2')}
+@font-face{font-family:'Literata';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/literata-700.woff2') format('woff2')}
+@font-face{font-family:'Nunito';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/nunito-400.woff2') format('woff2')}
+@font-face{font-family:'Nunito';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/nunito-700.woff2') format('woff2')}
+@font-face{font-family:'Lexend';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/lexend-400.woff2') format('woff2')}
+@font-face{font-family:'Lexend';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/lexend-700.woff2') format('woff2')}
+
 /* ---------- Masthead ---------- */
 header.masthead{
   background:var(--surface);border-bottom:1px solid var(--line);
@@ -391,6 +399,9 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
         <div class="set-sec">
           <div class="set-h">글꼴</div>
           <div class="set-opts" id="optFont">
+            <button data-v="literata" onclick="setReadFont('literata')" style="font-family:'Literata',Georgia,serif">리터라타</button>
+            <button data-v="nunito" onclick="setReadFont('nunito')" style="font-family:'Nunito',sans-serif">누니토·둥근</button>
+            <button data-v="lexend" onclick="setReadFont('lexend')" style="font-family:'Lexend',sans-serif">렉센드</button>
             <button data-v="serif" onclick="setReadFont('serif')" style="font-family:Georgia,serif">세리프</button>
             <button data-v="sans" onclick="setReadFont('sans')" style="font-family:-apple-system,'Malgun Gothic',sans-serif">고딕</button>
             <button data-v="palatino" onclick="setReadFont('palatino')" style="font-family:'Palatino Linotype','Book Antiqua',Palatino,serif">팔라티노</button>
@@ -601,7 +612,10 @@ function showView(v){
 const READ_FONTS={
   serif:"Georgia,'Times New Roman','Nanum Myeongjo',serif",
   sans:"-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Malgun Gothic','Apple SD Gothic Neo',sans-serif",
-  palatino:"'Palatino Linotype','Book Antiqua',Palatino,'Nanum Myeongjo',serif"
+  palatino:"'Palatino Linotype','Book Antiqua',Palatino,'Nanum Myeongjo',serif",
+  literata:"'Literata',Georgia,'Nanum Myeongjo',serif",
+  nunito:"'Nunito',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif",
+  lexend:"'Lexend',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif"
 };
 function setTheme(v){
   const d=document.documentElement;
