@@ -50,6 +50,10 @@ a{color:var(--accent);text-decoration:none}
 @font-face{font-family:'Nunito';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/nunito-700.woff2') format('woff2')}
 @font-face{font-family:'Lexend';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/lexend-400.woff2') format('woff2')}
 @font-face{font-family:'Lexend';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/lexend-700.woff2') format('woff2')}
+@font-face{font-family:'Atkinson Hyperlegible';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/atkinsonhyperlegible-400.woff2') format('woff2')}
+@font-face{font-family:'Atkinson Hyperlegible';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/atkinsonhyperlegible-700.woff2') format('woff2')}
+@font-face{font-family:'Figtree';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/figtree-400.woff2') format('woff2')}
+@font-face{font-family:'Figtree';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/figtree-700.woff2') format('woff2')}
 
 /* ---------- Masthead ---------- */
 header.masthead{
@@ -408,12 +412,11 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
         <div class="set-sec">
           <div class="set-h">글꼴</div>
           <div class="set-opts" id="optFont">
-            <button data-v="literata" onclick="setReadFont('literata')" style="font-family:'Literata',Georgia,serif">리터라타</button>
-            <button data-v="nunito" onclick="setReadFont('nunito')" style="font-family:'Nunito',sans-serif">누니토·둥근</button>
             <button data-v="lexend" onclick="setReadFont('lexend')" style="font-family:'Lexend',sans-serif">렉센드</button>
-            <button data-v="serif" onclick="setReadFont('serif')" style="font-family:Georgia,serif">세리프</button>
-            <button data-v="sans" onclick="setReadFont('sans')" style="font-family:-apple-system,'Malgun Gothic',sans-serif">고딕</button>
-            <button data-v="palatino" onclick="setReadFont('palatino')" style="font-family:'Palatino Linotype','Book Antiqua',Palatino,serif">팔라티노</button>
+            <button data-v="figtree" onclick="setReadFont('figtree')" style="font-family:'Figtree',sans-serif">피그트리</button>
+            <button data-v="atkinson" onclick="setReadFont('atkinson')" style="font-family:'Atkinson Hyperlegible',sans-serif">앳킨슨</button>
+            <button data-v="nunito" onclick="setReadFont('nunito')" style="font-family:'Nunito',sans-serif">누니토·둥근</button>
+            <button data-v="literata" onclick="setReadFont('literata')" style="font-family:'Literata',Georgia,serif">리터라타</button>
           </div>
         </div>
         <div class="set-sec">
@@ -619,12 +622,13 @@ function showView(v){
 }
 /* ---------------- Appearance (배경·글꼴·글자크기) ---------------- */
 const READ_FONTS={
-  serif:"Georgia,'Times New Roman','Nanum Myeongjo',serif",
+  serif:"Georgia,'Times New Roman','Nanum Myeongjo',serif",   // 하위호환 fallback
   sans:"-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Malgun Gothic','Apple SD Gothic Neo',sans-serif",
-  palatino:"'Palatino Linotype','Book Antiqua',Palatino,'Nanum Myeongjo',serif",
   literata:"'Literata',Georgia,'Nanum Myeongjo',serif",
   nunito:"'Nunito',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif",
-  lexend:"'Lexend',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif"
+  lexend:"'Lexend',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif",
+  atkinson:"'Atkinson Hyperlegible',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif",
+  figtree:"'Figtree',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif"
 };
 function setTheme(v){
   const d=document.documentElement;
