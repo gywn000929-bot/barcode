@@ -333,6 +333,10 @@ html[data-theme="dark"] .syncbanner.err{background:#3a201d;color:#ff9b8f}
 .set-size button{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:6px 11px;font-size:14px;font-weight:700}
 .set-size button:hover{border-color:var(--accent)}
 .set-size input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
+.set-syncbtn{width:100%;border:1px solid var(--line);background:var(--surface);color:var(--sub);
+  border-radius:10px;padding:11px 12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;transition:.12s}
+.set-syncbtn:hover{border-color:var(--accent);color:var(--ink)}
+.set-syncbtn .syncdot{margin-left:auto}
 .set-size .fsval{font-size:12px;color:var(--faint);min-width:38px;text-align:right}
 
 .hide{display:none!important}
@@ -359,11 +363,12 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
   header.masthead{gap:6px;padding:calc(10px + var(--safetop)) 12px 10px}
   .brand{flex:none;margin-right:6px}
   .brand .k{display:none}
-  .brand .t{font-size:19px;letter-spacing:-.2px}
+  .brand .t{letter-spacing:-.2px}
   .brand .wm-lg{display:none}
-  .brand .wm-sm{display:inline;white-space:nowrap}
-  .brand .wm-sm b{color:var(--accent);font-weight:800}
+  .brand .wm-sm{display:inline;white-space:nowrap;font-size:26px;font-weight:900;letter-spacing:.5px;color:var(--ink)}
+  .brand .wm-sub{display:none}
   .nav{gap:2px}
+  .nav #navSync{display:none}
   .nav button{padding:8px 6px;font-size:16px}
   .iconbtn{width:38px;height:38px}
   main{padding:24px 20px calc(28px + var(--safebot))}
@@ -390,7 +395,7 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
   <button class="iconbtn" id="menuBtn" onclick="toggleDrawer()" aria-label="목록 열기">☰</button>
   <div class="brand">
     <span class="k">English Study Edition</span>
-    <span class="t"><span class="wm-lg">The Wall Street Journal</span><span class="wm-sm">WSJ&nbsp;<b>Study</b></span></span>
+    <span class="t"><span class="wm-lg">The Wall Street Journal</span><span class="wm-sm">WSJ<b class="wm-sub">&nbsp;Study</b></span></span>
   </div>
   <div class="spacer"></div>
   <nav class="nav">
@@ -427,6 +432,9 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
             <button onclick="setFont(1)" aria-label="크게">A＋</button>
             <span class="fsval" id="fsVal">20px</span>
           </div>
+        </div>
+        <div class="set-sec set-sync-sec">
+          <button class="set-syncbtn" onclick="$('#setmenu').classList.remove('show');showView('sync')">☁️ 기기 간 동기화<span class="syncdot"></span></button>
         </div>
       </div>
     </div>
@@ -1493,10 +1501,11 @@ async function ghPutFile(cfg, filepath, obj, sha, message){
   return (await res.json()).content.sha;
 }
 
+function setSyncDots(state){ document.querySelectorAll('.syncdot').forEach(d=>d.className='syncdot'+(state?' '+state:'')); }
 function setSyncStatus(kind, msg){
-  const b=$('#syncStatus'), dot=$('#syncdot');
+  const b=$('#syncStatus');
   if(b){ b.className='syncbanner '+kind; b.innerHTML=msg; }
-  if(dot){ dot.className='syncdot'+(kind==='on'?' on':kind==='busy'?' busy':''); }
+  setSyncDots(kind==='on'?'on':kind==='busy'?'busy':'');
 }
 function localState(){
   const papers=store.papers.map(p=>({id:p.id,title:p.title,section:p.section,date:p.date,count:p.articles.length}));
@@ -1674,7 +1683,7 @@ function connectFirebase(){
   toast('☁️ 자동 백업이 켜졌습니다');
 }
 function disconnectFirebase(){ store.fb=null; clearInterval(pollTimer); clearTimeout(syncTimer);
-  setSyncStatus('off','🔌 자동 백업을 껐습니다. (이 기기 데이터는 유지)'); $('#syncdot').className='syncdot';
+  setSyncStatus('off','🔌 자동 백업을 껐습니다. (이 기기 데이터는 유지)'); setSyncDots('');
   toast('자동 백업을 껐습니다'); }
 function startPoll(){
   clearInterval(pollTimer);
@@ -1716,7 +1725,7 @@ async function connectSync(){
 function disconnectSync(){
   syncCfg=null; store.gh=null; clearInterval(pollTimer); clearTimeout(syncTimer);
   setSyncStatus('off','🔌 연결을 해제했습니다. (이 브라우저의 데이터는 그대로 유지됩니다)');
-  $('#syncdot').className='syncdot';
+  setSyncDots('');
   toast('연결을 해제했습니다');
 }
 function pullNow(){ if(!syncCfg){ toast('먼저 연결하세요'); return; } pullState(); }
@@ -1760,10 +1769,10 @@ store.papers.forEach(loadPaperIntoART);
 renderSectFilter(); renderList(); updateVCount();
 if(ART.length) openArticle(ART[0].id);
 if(fbActive()){          // Firebase auto-backup: zero-setup on every device
-  setSyncStatus('busy','⏳ 자동 백업 동기화 중…'); $('#syncdot').className='syncdot on';
+  setSyncStatus('busy','⏳ 자동 백업 동기화 중…'); setSyncDots('busy');
   fbPull().then(()=>fbPush()); startPoll();
 } else if(syncCfg){      // GitHub mode
-  setSyncStatus('busy','⏳ 동기화 중…'); $('#syncdot').className='syncdot on';
+  setSyncStatus('busy','⏳ 동기화 중…'); setSyncDots('busy');
   pullState().then(()=>pushState()); startPoll();
   if(fromLink){ toast('📱 이 기기가 연결되었습니다'); logActivity('sync','📱','새 기기 연결됨'); showView('sync'); }
 }
