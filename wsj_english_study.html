@@ -61,6 +61,8 @@ header.masthead{
   padding:calc(12px + var(--safetop)) clamp(14px,4vw,28px) 12px;position:sticky;top:0;z-index:60;
   display:flex;align-items:center;gap:14px;
 }
+.reading-progress{position:fixed;top:0;left:0;width:100%;height:3px;z-index:100;pointer-events:none;background:transparent}
+.reading-progress span{display:block;width:0;height:100%;background:var(--accent);box-shadow:0 0 8px color-mix(in srgb,var(--accent) 35%,transparent);transition:width .08s linear}
 .iconbtn{width:40px;height:40px;border:1px solid var(--line);background:var(--surface);
   border-radius:10px;display:none;align-items:center;justify-content:center;font-size:18px;flex:none}
 .iconbtn:hover{border-color:var(--accent)}
@@ -110,11 +112,12 @@ main{min-width:0;padding:clamp(20px,4vw,48px) clamp(18px,5vw,64px)}
 
 /* ---------- Reader ---------- */
 .reader{max-width:calc(var(--measure) + 6rem);margin:0 auto}
+.reader::before{content:"";display:block;width:42px;height:4px;border-radius:4px;background:var(--accent);margin-bottom:20px;opacity:.9}
 .reader .kicker{color:var(--accent);text-transform:uppercase;letter-spacing:2px;font-size:11.5px;font-weight:700}
 .reader h1{font-family:var(--serif);font-size:clamp(27px,4.6vw,44px);line-height:1.14;
   margin:10px 0 14px;font-weight:800;letter-spacing:-.6px}
 .reader .byline{font-size:13px;color:var(--sub);border-bottom:1px solid var(--line);
-  padding-bottom:16px;display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center}
+  padding:0 0 16px;display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center}
 .reader .byline b{color:var(--ink);font-weight:600;letter-spacing:.3px}
 .reader .byline .datedit{border:1px solid var(--line);background:var(--surface);color:var(--accent);
   border-radius:8px;padding:3px 9px;font-size:11.5px;font-weight:600;font-family:var(--sans);cursor:pointer}
@@ -126,6 +129,7 @@ html[data-theme="dark"] .reader .byline .datedit.del:hover{background:#3a201d}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0 26px;
   padding:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;
   position:sticky;top:calc(65px + var(--safetop));z-index:30;box-shadow:0 2px 10px rgba(20,16,10,.03)}
+.toolbar::before{content:"학습 도구";font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--faint);padding:0 4px 0 2px}
 .toolbar button{border:1px solid transparent;background:transparent;color:var(--sub);
   padding:8px 11px;border-radius:9px;font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:5px;
   white-space:nowrap;flex:none}
@@ -138,6 +142,7 @@ html[data-theme="dark"] .reader .byline .datedit.del:hover{background:#3a201d}
 .body{font-family:var(--reading-font,var(--serif));font-size:var(--fs);line-height:1.92;color:var(--ink);
   overflow-wrap:break-word}
 .body p{margin:0 0 1.35em;max-width:var(--measure)}
+.body p+p{padding-top:2px}
 .body p:first-of-type::first-letter{font-size:3.1em;line-height:.86;float:left;font-weight:800;
   padding:2px 10px 0 0;color:var(--ink)}
 .body .sent{transition:background .2s;border-radius:3px}
@@ -243,6 +248,7 @@ html[data-theme="dark"] .reader .byline .datedit.del:hover{background:#3a201d}
 
 /* ---------- Panels ---------- */
 .panel{max-width:900px;margin:0 auto}
+.panel::before{content:"";display:block;width:42px;height:4px;border-radius:4px;background:var(--accent);margin-bottom:20px;opacity:.9}
 .panel h2{font-family:var(--serif);font-size:clamp(24px,4vw,32px);margin:0 0 4px;font-weight:800}
 .panel .lead{color:var(--sub);font-size:14px;margin-bottom:20px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
@@ -371,15 +377,18 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
   .nav #navSync{display:none}
   .nav button{padding:8px 6px;font-size:16px}
   .iconbtn{width:38px;height:38px}
-  main{padding:24px 20px calc(28px + var(--safebot))}
+  main{padding:24px 20px calc(44px + var(--safebot))}
+  .reader::before,.panel::before{margin-bottom:16px}
   .reader h1{line-height:1.2;letter-spacing:-.3px}
   .body{line-height:2.0}
   .body p{margin:0 0 1.55em}
   .reader .byline{padding-bottom:14px}
-  .toolbar{top:calc(61px + var(--safetop));gap:4px;padding:6px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+  .toolbar{top:calc(61px + var(--safetop));gap:4px;padding:6px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;margin-left:-6px;margin-right:-6px}
+  .toolbar::before{display:none}
   .toolbar::-webkit-scrollbar{display:none}
   .toolbar .grp.hide-sm{display:none}
   .body p:first-of-type::first-letter{font-size:2.6em}
+  .body .sent{box-decoration-break:clone;-webkit-box-decoration-break:clone}
   #pop.show{position:fixed;left:0!important;right:0;bottom:0;top:auto!important;width:100%;max-width:100%;
     border-radius:18px 18px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));
     max-height:82vh;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:sheet .22s ease}
@@ -440,6 +449,8 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
     </div>
   </nav>
 </header>
+
+<div class="reading-progress" aria-hidden="true"><span id="readingProgressBar"></span></div>
 
 <div id="overlay" onclick="closeDrawer()"></div>
 
@@ -517,7 +528,7 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
 <!-- ============ SYNC VIEW ============ -->
 <div id="view-sync" class="hide"><main><div class="panel">
   <h2>☁️ 기기 간 동기화</h2>
-  <p class="lead">Firebase에 데이터를 저장하면, <b>어느 기기든 앱을 열기만 해도</b> 토큰·링크 없이 자동으로 저장·연동됩니다.</p>
+  <p class="lead">내 Firebase 주소를 직접 입력한 경우에만 학습 기록을 백업합니다. 주소를 비워 두면 이 브라우저에만 저장됩니다.</p>
 
   <div id="syncStatus" class="syncbanner off">🔌 아직 연결되지 않았습니다.</div>
 
@@ -538,11 +549,11 @@ kbd{background:var(--line2);border:1px solid var(--line);border-radius:5px;paddi
     <summary>⚙️ Firebase 만드는 법 (처음 한 번, 약 5분 · 무료)</summary>
     <ol>
       <li><a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase 콘솔</a> 접속 → <b>프로젝트 만들기</b> (이름 아무거나, 애널리틱스는 꺼도 됨)</li>
-      <li>왼쪽 메뉴 <b>빌드 → Realtime Database</b> → <b>데이터베이스 만들기</b> → 위치 선택 → <b>테스트 모드로 시작</b></li>
+      <li>왼쪽 메뉴 <b>빌드 → Realtime Database</b> → <b>데이터베이스 만들기</b> → 위치 선택. 테스트 모드는 개발 확인용으로만 잠시 사용하세요.</li>
       <li>만들어진 화면 위쪽의 주소(<code>https://…firebaseio.com</code>)를 복사해 위 “Database URL”에 붙여넣기</li>
       <li><b>☁️ 자동 백업 켜기</b> 누르면 끝. 다른 기기에서는 같은 URL만 넣으면 자동 연동됩니다.</li>
     </ol>
-    <p class="hint2">더 편하게: 이 URL을 저에게 알려주시면 앱에 넣어 드려요. 그러면 <b>어느 기기든 그냥 열기만 해도</b> 자동 연동됩니다(입력조차 불필요). Firebase URL은 공개돼도 안전한 값입니다. 오래 안전하게 쓰려면 나중에 규칙(Rules)만 잠가두면 됩니다.</p>
+    <p class="hint2">보안을 위해 Firebase URL을 HTML에 미리 넣지 않습니다. 여러 기기에서 쓰려면 각 기기에서 같은 URL을 직접 입력하세요. 테스트 모드로 만든 DB는 실제 사용 전에 Firebase Rules를 검토해 읽기·쓰기 범위를 제한하세요.</p>
   </details>
 
   <details class="howto">
@@ -613,6 +624,17 @@ const store = {
 let curFilter='ALL', curArt=null, fontSize=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const isMobile=()=>window.matchMedia('(max-width:640px)').matches;
+function updateReadingProgress(){
+  const bar=$('#readingProgressBar'), body=$('#artbody');
+  if(!bar) return;
+  if(!body){ bar.style.width='0%'; return; }
+  const top=body.getBoundingClientRect().top+window.scrollY;
+  const total=Math.max(1,body.scrollHeight-window.innerHeight);
+  const pct=Math.max(0,Math.min(100,((window.scrollY-top+window.innerHeight*.18)/total)*100));
+  bar.style.width=pct+'%';
+}
+window.addEventListener('scroll',updateReadingProgress,{passive:true});
+window.addEventListener('resize',updateReadingProgress);
 
 /* ---------------- Drawer (mobile) ---------------- */
 function toggleDrawer(){ document.body.classList.toggle('drawer'); }
@@ -921,6 +943,7 @@ function openArticle(id){
     <div class="body showvocab" id="artbody">${paras.join('')}</div>
     <p class="readtip">💡 단어 탭 → 뜻·발음·번역 · <b>🔊 듣기</b>로 낭독 · <b>🇰🇷 문장번역</b> 켜고 문장 아무 곳이나 탭 → 한국어 해석</p>`;
   bindWords();
+  updateReadingProgress();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function bindWords(){
@@ -1591,11 +1614,11 @@ function scheduleSync(){
 }
 
 /* ================================================================
- *  Firebase auto-backup (no per-device setup)
- *  If FIREBASE_URL is baked in (or set once in the app), every device
- *  that opens the app auto-syncs — no tokens, no links.
+ *  Firebase auto-backup
+ *  Keep the default empty so readers do not all sync into one shared
+ *  database. Sync starts only after a user explicitly saves a Firebase URL.
  * ================================================================ */
-const FIREBASE_URL = "https://wall-street-57bf4-default-rtdb.firebaseio.com";   // ← 이 주소로 모든 기기가 자동 연동됩니다
+const FIREBASE_URL = "";
 let fbBusy=false;
 function fbConf(){ const c=store.fb; const url=(c&&c.url)||FIREBASE_URL||''; if(!url) return null;
   return { url:url.replace(/\/+$/,''), path:(c&&c.path)||'study' }; }
@@ -1768,7 +1791,7 @@ const fromLink=applyConnectHash();   // one-tap link on a new device (GitHub mod
 store.papers.forEach(loadPaperIntoART);
 renderSectFilter(); renderList(); updateVCount();
 if(ART.length) openArticle(ART[0].id);
-if(fbActive()){          // Firebase auto-backup: zero-setup on every device
+if(fbActive()){          // Firebase auto-backup: only after explicit setup
   setSyncStatus('busy','⏳ 자동 백업 동기화 중…'); setSyncDots('busy');
   fbPull().then(()=>fbPush()); startPoll();
 } else if(syncCfg){      // GitHub mode
