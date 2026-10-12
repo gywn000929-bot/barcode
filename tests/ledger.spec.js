@@ -7,7 +7,7 @@ async function boot(page, old) {
         sessionStorage.setItem("seeded", "1");
       }
     }, old);
-  await page.goto("/");
+  await page.goto('/', {waitUntil:'domcontentloaded'});
   await expect(page.locator("#currentPal")).toHaveText("1");
   await page.locator("#focusBtn").click();
 }
@@ -49,7 +49,7 @@ test("normal continuous scan, actual quantities immutable, same LOT review and r
   expect(await page.evaluate(() => PalletApp.totals().parts[0].normal)).toBe(
     6000,
   );
-  await page.reload();
+  await page.reload({waitUntil:'domcontentloaded'});
   expect((await state(page)).boxes.map((b) => b.items[0].qty)).toEqual([
     2000, 3000, 1000,
   ]);
@@ -78,7 +78,7 @@ test("mixed 2 items 4000 EA one physical box; full undo leaves unrelated box", a
     sheets["품목별 총수량"].find((r) => r[0] === "MG634527").slice(1, 4),
   ).toEqual([2300, 300, 2000]);
   await expect(page.locator("#partTbl")).toContainText("혼합");
-  await page.reload();
+  await page.reload({waitUntil:'domcontentloaded'});
   expect((await state(page)).boxes).toHaveLength(2);
   page.once("dialog", (d) => d.accept());
   await page.locator("#undoBtn").click();
@@ -157,7 +157,7 @@ test("legacy exact backup, unverified rows separate, truncated feed never invent
   await scan(page, "P634527Q1000SOLD");
   await expect(page.locator("#duplicate")).toBeVisible();
   await page.locator("#duplicateAccept").click();
-  await page.reload();
+  await page.reload({waitUntil:'domcontentloaded'});
   s = await state(page);
   expect(s.legacy.source).toEqual(old);
   expect(s.boxes).toHaveLength(1);
@@ -232,7 +232,7 @@ test("corrupt existing v2 blocks writes and preserves bytes", async ({
   await page.addInitScript(() =>
     localStorage.setItem("palletAccu.v2", "{invalid"),
   );
-  await page.goto("/");
+  await page.goto('/', {waitUntil:'domcontentloaded'});
   await scan(page, "P634527Q2000SBLOCK");
   await expect(page.locator("#status")).toContainText("저장 차단");
   expect(await page.evaluate(() => localStorage.getItem("palletAccu.v2"))).toBe(
@@ -252,11 +252,11 @@ test("same raw requires explicit decision and cancel does not save", async ({
 test("multi-tab changes block stale overwrite", async ({ page, context }) => {
   await boot(page);
   const second = await context.newPage();
-  await second.goto("/");
+  await second.goto('/', {waitUntil:'domcontentloaded'});
   await scan(page, "P634527Q2000STAB");
   await scan(second, "P634527Q2000SSTALE");
   await expect(second.locator("#status")).toContainText("저장 차단");
-  await second.reload();
+  await second.reload({waitUntil:'domcontentloaded'});
   expect((await state(second)).boxes).toHaveLength(1);
 });
 test("backup restore restores boxes, escaped names do not inject HTML", async ({
@@ -277,7 +277,7 @@ test("backup restore restores boxes, escaped names do not inject HTML", async ({
       ),
     });
   await expect(page.locator("#status")).toContainText("복원 완료");
-  await page.reload();
+  await page.reload({waitUntil:'domcontentloaded'});
   expect((await state(page)).boxes).toHaveLength(1);
   expect(await page.locator("#partTbl img").count()).toBe(0);
   await expect(page.locator("#partTbl")).toContainText("<img src=x");

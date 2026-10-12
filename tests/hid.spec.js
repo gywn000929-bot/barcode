@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
 test('one start tap receives multiple HID keyboard streams, pallet Enter and popup close resume', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/', {waitUntil:'domcontentloaded'});
   await page.getByRole('button', { name: '스캔 시작', exact: true }).click();
   for (let i = 1; i <= 3; i++) {
     // No locator.fill/focus between scans: exercise the currently focused input.
@@ -27,7 +27,7 @@ test('one start tap receives multiple HID keyboard streams, pallet Enter and pop
 });
 
 test('manual fields keep focus through recovery events and delayed popup callbacks', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/', {waitUntil:'domcontentloaded'});
   await page.locator('#focusBtn').click();
   await page.locator('#mixedBtn').click();
   for (const field of ['.itemName', '.itemQty']) {
@@ -45,7 +45,7 @@ test('manual fields keep focus through recovery events and delayed popup callbac
 });
 
 test('stop cancels recovery, restart resumes, reload requires a fresh user tap', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/', {waitUntil:'domcontentloaded'});
   await page.locator('#focusBtn').click();
   await page.locator('#hidStop').click();
   await page.locator('#palInput').fill('3');
@@ -55,7 +55,7 @@ test('stop cancels recovery, restart resumes, reload requires a fresh user tap',
   await expect(page.locator('#hidState')).toContainText('꺼짐');
   await page.locator('#focusBtn').click();
   await expect(page.locator('#scan')).toBeFocused();
-  await page.reload();
+  await page.reload({waitUntil:'domcontentloaded'});
   await expect(page.locator('#focusBtn')).toHaveText('스캔 시작');
   await expect(page.locator('#scan')).not.toBeFocused();
 });

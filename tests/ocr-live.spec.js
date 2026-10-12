@@ -7,7 +7,7 @@ test("real browser OCR of a synthetic two-column label, candidates only, photo p
     !process.env.LIVE_OCR,
     "Opt-in real CDN/worker integration, not a real shipping label accuracy test",
   );
-  await page.goto("/");
+  await page.goto('/', {waitUntil:'domcontentloaded'});
   const png = await page.evaluate(() => {
     const c = document.createElement("canvas");
     c.width = 1400;
@@ -54,7 +54,7 @@ test("real browser OCR of a synthetic two-column label, candidates only, photo p
     await el.check();
   await page.locator("#reviewed").check();
   await page.locator("#entrySave").click();
-  await page.reload();
+  await page.reload({waitUntil:'domcontentloaded'});
   expect(
     await page.evaluate(() => PalletApp.getState().boxes[0].photo),
   ).toMatch(/^data:image\/jpeg;base64,/);
