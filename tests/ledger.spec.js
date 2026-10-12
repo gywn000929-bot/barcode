@@ -9,6 +9,7 @@ async function boot(page, old) {
     }, old);
   await page.goto("/");
   await expect(page.locator("#currentPal")).toHaveText("1");
+  await page.locator("#focusBtn").click();
 }
 async function scan(page, raw) {
   await page.locator("#scan").fill(raw);
