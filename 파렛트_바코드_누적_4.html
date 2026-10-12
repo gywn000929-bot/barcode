@@ -94,6 +94,7 @@ video{width:100%;border-radius:12px;background:#000}
   <section id="tab-pallet" class="card" hidden><div id="palletView"></div></section>
   <section id="tab-feed" class="card" hidden><p class="hint">취소는 선택한 실물 박스의 모든 품목을 함께 취소합니다.</p><div id="boxView"></div></section>
   <section class="card"><details><summary>이전 데이터 / 미처리 목록 <span id="legacyCount"></span></summary><p>이전 집계는 원본 그대로 보존했습니다. 과거의 포장수량 변경·낱개 입력 때문에 실제 박스 구성을 복원할 수 없습니다. 확정 실물 박스 수와 합치지 않습니다.</p><div class="scroll" id="legacyView"></div><div id="pendingBox"></div></details></section>
+  <section class="card"><details id="connectionsPanel"><summary>등록한 바코드 연결 <span id="connectionCount"></span></summary><p>이전에 ‘바코드 연결’로 등록한 코드와 품명을 복구합니다. 새 버전의 연결을 우선하며, 박스 기록이나 누적 수량을 추가하지 않습니다. 이 목록은 현재 기기·브라우저에 저장된 정보입니다.</p><div id="connectionRecovery" role="status"></div><div class="scroll" id="connectionView"></div></details></section>
   <section class="card"><div class="row"><button class="btn sec" id="copyBtn">품목 표 복사</button><button class="btn sec" id="csvBtn">상세 CSV</button><button class="btn" id="xlsxBtn">엑셀(.xlsx)</button><button class="btn sec" id="backupBtn">전체 JSON 백업</button><button class="btn ghost" id="restoreBtn">JSON 복원</button><button class="btn ghost" id="resetBtn">현재 작업 비우기</button></div><input id="restoreIn" type="file" accept=".json" hidden><p class="hint">데이터는 이 기기의 브라우저에 저장됩니다. 다른 기기로 이동하거나 브라우저 데이터를 지우기 전 JSON을 백업하세요.</p></section>
 </div>
 <dialog id="entry"><div class="inn"><h2 id="entryTitle"></h2><p>현재 등록 파렛트 <strong id="entryPal"></strong> · <b>실물 1박스</b></p>
@@ -102,6 +103,7 @@ video{width:100%;border-radius:12px;background:#000}
   <p id="ocrStatus" class="hint">사진 문자 인식은 바코드 읽기와 별개입니다. 브라우저 OCR을 내려받아 기기에서 처리합니다. 인식 실패 시 바로 직접 입력하세요.</p><details><summary>OCR 원문 (좌/우)</summary><pre id="ocrText"></pre></details></div>
   <label for="entryRaw">바코드 실제 입력 원문 (선택, 품목 자동 배정 안 함)</label><textarea id="entryRaw" rows="2" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
   <p id="inputCorrection" class="warning" role="status" hidden></p>
+  <p id="connectionNotice" class="warning" role="status" hidden></p>
   <div class="row"><button class="btn ghost sm" id="lastPart">방금 스캔한 품목 가져오기</button></div><div id="quickParts" class="quick"></div>
   <div id="entryRows"></div><button class="btn sec" id="addRow">＋ 품목 추가</button>
   <div id="entrySummary" class="summary"></div><label class="check"><input id="reviewed" type="checkbox"> 원본 라벨의 모든 품목·수량과 실물 1박스를 확인했습니다.</label>
@@ -245,7 +247,7 @@ function validState(s) {
 }
 function migrate(old) {
   const n = blank();
-  n.pal = String(old.pal || "1"); // Old substring-derived mappings are preserved in source, but must be reconfirmed.
+  n.pal = String(old.pal || "1");
   n.pending = Array.isArray(old.pending) ? clone(old.pending) : [];
   const rows = Object.values(old.items || {}).map((r) => ({
     pal: String(r.pal ?? "?"),
@@ -281,6 +283,38 @@ function init() {
       "저장 데이터를 안전하게 열 수 없습니다. 원본은 유지됩니다. 전체 JSON 백업으로 원문을 보관하고 정상 백업을 복원하세요. " +
       e.message;
   }
+  if (!blocked) recoverLegacyConnections();
+}
+function connectionNeedsReview(code, name) {
+  const exact = exactMaster(code);
+  if (exact && exact !== name) return true;
+  return masterIndex.some(r => r.name === name && r.core.length >= 5 &&
+    normalize(code) !== r.core && normalize(code) !== r.norm && normalize(code).includes(r.core));
+}
+function recoverLegacyConnections() {
+  const old = S.legacy?.source?.learned;
+  if (!old || typeof old !== "object" || Array.isArray(old)) return;
+  const missing = Object.entries(old).filter(([code, name]) =>
+    code.trim() && typeof name === "string" && name.trim() &&
+    !Object.hasOwn(S.learned, normalize(code)) &&
+    !["__PROTO__", "CONSTRUCTOR", "PROTOTYPE"].includes(normalize(code)));
+  if (!missing.length) return;
+  const ok = transact(s => {
+    s.connectionReview ||= {};
+    s.recoveredConnections ||= [];
+    for (const [rawCode, name] of missing) {
+      const code = normalize(rawCode);
+      if (Object.hasOwn(s.learned, code)) continue;
+      s.learned[code] = name;
+      s.recoveredConnections.push(code);
+      if (connectionNeedsReview(code, name)) s.connectionReview[code] = true;
+      // Old per values are only a proposal, and only if all surviving rows agree.
+      const values = [...new Set((s.legacy.rows || []).filter(r => r.name === name && positive(r.per)).map(r => Number(r.per)))];
+      if (!Object.hasOwn(s.defaults, name) && values.length === 1) s.defaults[name] = values[0];
+    }
+    s.recoveredConnections = [...new Set(s.recoveredConnections)];
+  });
+  if (!ok) $("#storageAlert").textContent = "이전 바코드 연결의 복구 저장에 실패했습니다. 원본은 보존되어 있습니다. JSON 백업 후 저장 공간을 확인하고 새로고침하세요.";
 }
 function transact(change) {
   if (blocked) {
@@ -473,9 +507,14 @@ function matches(raw) {
   const p = parseBarcode(raw);
   if (p.mixed) return [];
   const q = normalize(p.part);
-  const learned = S.learned[q];
-  if (learned && masterNames.has(learned))
-    return masterIndex.filter((r) => r.name === learned).slice(0, 1);
+  for (const key of [...new Set([q, normalize(raw)])]) {
+    if (!Object.hasOwn(S.learned, key)) continue;
+    const name = S.learned[key];
+    if (typeof name !== "string" || !name.trim()) continue;
+    const master = masterIndex.find(r => r.name === name);
+    return [{ ...(master || { name, per: 0, fac: "사용자 등록 품명" }),
+      connectionReview: !!S.connectionReview?.[key], connectionKey: key }];
+  }
   const a = masterIndex.filter((r) => r.norm === q || r.core === q);
   return [...new Map(a.map((r) => [r.name, r])).values()];
 }
@@ -499,6 +538,15 @@ function onScan(raw, forceReview = false) {
   const candidates = matches(original);
   if (candidates.length === 1) {
     const c = candidates[0];
+    if (c.connectionReview) {
+      openEntry("normal", original, [{name: parsed.part, qty: positive(parsed.qty) ? parsed.qty : ""}]);
+      $("#connectionNotice").hidden = false;
+      $("#connectionNotice").textContent = "이전 연결 복구: " + c.connectionKey + " → " + c.name +
+        " · 품번 일부만 일치하거나 현재 마스터와 다른 연결입니다. 후보를 선택하거나 품명을 수정한 뒤 라벨과 대조하세요. 아직 누적되지 않았습니다.";
+      showCandidates($("#entryRows .entryRow"), [c]);
+      status("이전 연결 복구 · 품명 대조 필요", "warning");
+      return;
+    }
     lastPart = c.name;
     const q = positive(parsed.qty) ? parsed.qty : S.defaults[c.name];
     if (
@@ -625,7 +673,10 @@ function submitBox(b, approved = false) {
         const r = b.items[0];
         s.defaults[r.name] = r.qty;
         const p = parseBarcode(b.raw);
-        if (b.raw.trim() && !p.mixed) s.learned[normalize(p.part)] = r.name;
+        if (b.raw.trim() && !p.mixed) {
+          s.learned[normalize(p.part)] = r.name;
+          if (s.connectionReview) delete s.connectionReview[normalize(p.part)];
+        }
       }
     })
   )
@@ -678,6 +729,7 @@ function openEntry(type, raw = "", rows = []) {
   $("#mixedPhoto").hidden = type !== "mixed";
   $("#addRow").hidden = type !== "mixed";
   $("#entryRaw").value = raw;
+  $("#connectionNotice").hidden = true;
   showInputCorrection();
   $("#entryRows").innerHTML = "";
   $("#entryError").textContent = "";
@@ -1266,6 +1318,14 @@ function table(headers, rows) {
 }
 function render() {
   const t = totals();
+  const links = Object.entries(S.learned).filter(([, name]) => typeof name === "string");
+  const restored = S.recoveredConnections || [];
+  $("#connectionCount").textContent = links.length + "건";
+  $("#connectionRecovery").textContent = restored.length
+    ? "이전 연결 " + restored.length + "건 복구 · 새 연결 유지 · 누적 수량 변경 없음"
+    : "이 기기의 이전 연결 기록 " + Object.keys(S.legacy?.source?.learned || {}).length + "건 · 로컬 파일과 인터넷 주소의 저장 공간은 서로 다릅니다.";
+  $("#connectionView").innerHTML = table(["등록 코드", "연결 품명", "상태"], links.map(([code, name]) =>
+    [code, name, S.connectionReview?.[code] ? "복구됨 · 품명 대조 필요" : restored.includes(code) ? "이전 연결 복구" : "연결 사용 중"]));
   $("#currentPal").textContent = S.pal;
   $("#palInput").value = S.pal;
   $("#palQuick").innerHTML = "";
@@ -1737,6 +1797,7 @@ $("#restoreIn").onchange = async (e) => {
     persisted = data;
     blocked = false;
     $("#storageAlert").textContent = "";
+    recoverLegacyConnections();
     render();
     status("백업 복원 완료", "success");
   } catch (err) {

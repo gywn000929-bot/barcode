@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 
 // Screenshot-derived fixtures, not a claim about the exact device output bytes.
 test('Korean HID delimiter candidate requires confirmation and keeps original raw', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/', {waitUntil:'domcontentloaded'});
   await page.locator('#focusBtn').click();
   const raw = 'ㅔ730695-3ㅃ24000ㄴ260908—9';
   await page.locator('#scan').fill(raw);
@@ -26,7 +26,7 @@ test('Korean HID delimiter candidate requires confirmation and keeps original ra
 });
 
 test('limited keyboard recovery does not reinterpret mixed box or arbitrary Korean', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/', {waitUntil:'domcontentloaded'});
   const values = await page.evaluate(() => [
     'ㅖ730695-3ㅂ24000ㄴ260908-9',
     'P730695-3Q24000S260908—9',
