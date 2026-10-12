@@ -1,0 +1,27 @@
+{
+  "name": "barcode",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gywn000929-bot/barcode.git"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/gywn000929-bot/barcode/issues"
+  },
+  "homepage": "https://github.com/gywn000929-bot/barcode#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "xlsx": "^0.18.5"
+  }
+}
